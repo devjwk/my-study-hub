@@ -1,61 +1,109 @@
-# My Study Hub
+<div align="center">
 
-학습과 할 일, 집중 시간, 복습, 회고를 한 화면에서 관리하는 설치형 웹 앱(PWA)입니다.
+# MY STUDY HUB
+
+### Plan, focus, review and reflect in one installable page
+
+**HTML · CSS · JavaScript · no framework**
+
+![JavaScript](https://img.shields.io/badge/Code-Vanilla%20JS-F7DF1E?style=flat-square&labelColor=0F172A)
+![PWA](https://img.shields.io/badge/App-Installable%20PWA-6366F1?style=flat-square)
+![Offline](https://img.shields.io/badge/Works-Offline-0891B2?style=flat-square)
+![Build](https://img.shields.io/badge/Build%20step-None-F59E0B?style=flat-square)
+
+Personal project · March 2026
+
+[Why](#why) · [What it does](#what-it-does) · [Design](#design) · [My role](#my-role) · [Limitations](#limitations-and-next-steps)
+
+</div>
+
+---
+
+> **Where it stands — working app**  
+> The app installs to the home screen and opens offline.  
+> Data stays in one browser; there is no sync between devices yet.
 
 | | |
 |---|---|
-| 기간 | 2026년 3월 |
-| 인원 | 개인 프로젝트 |
-| 기술 | HTML, CSS, JavaScript (프레임워크 없음), Service Worker, localStorage, Netlify |
+| Period | March 2026 |
+| Team | Individual |
+| Stack | HTML, CSS, JavaScript (no framework), Service Worker, localStorage, Netlify |
 
-## 프로젝트 설명
+## Why
 
-- **왜 만들었나:** 할 일 앱, 포모도로 타이머, 플래시 카드, 회고 노트를 따로 쓰다 보니 하루 공부가 여러 앱에 흩어졌습니다. 한곳에서 계획하고, 집중하고, 복습하고, 돌아볼 수 있게 했습니다.
-- **구성:**
+My study day was spread across a to-do app, a pomodoro timer, a flashcard app and a notes file. Switching between them cost attention, and none of them knew about the others. My Study Hub puts the whole loop in one place.
 
-| 영역 | 기능 |
-|---|---|
-| 구조화 · 할 일 | 우선순위, 태그, 마감 일시, 검색·정렬·필터, 수정 |
-| 집중 · 포모도로 | 집중 시간과 타이머 모드 설정 |
-| 학습 카드 · 복습 | 플래시 카드와 복습 |
-| 동기 · 습관 | 습관 기록, 완료 마일스톤 |
-| 피드백 · 회고 | 회고 기록 |
-| 요약 | 오늘의 요약 지표와 통계 |
-| 설정 | 밝은·어두운 테마, 배경 색 조절, 전체 데이터 백업과 복원 |
+| Plan | Focus | Review | Reflect |
+| :--- | :--- | :--- | :--- |
+| Tasks with priority, tags and deadlines | Pomodoro timer | Flashcards and review | Habits, milestones and retrospectives |
 
-## 내 역할
+## What it does
 
-기획, 화면 설계, 구현, 배포 설정까지 혼자 했습니다.
+| Area | Features |
+| :--- | :--- |
+| **Tasks** | Priority, tags, due date and time, search, sort, filter, edit |
+| **Focus** | Pomodoro with adjustable focus length and timer modes |
+| **Study cards · Review** | Flashcards and review |
+| **Motivation · Habits** | Habit tracking and completion milestones |
+| **Feedback · Retrospective** | Retrospective notes |
+| **Summary** | Today's summary and statistics |
+| **Settings** | Light and dark themes, background tint, full data backup and restore |
 
-## 배운 것
+The interface is in Korean.
 
-- 프레임워크 없이 상태와 화면을 동기화하는 방법 (`js/app.js`, `js/hub.js`)
-- Service Worker로 정적 파일을 캐시해 오프라인에서도 열리게 하는 방법
-- 웹 앱 매니페스트로 홈 화면에 설치되게 만드는 방법
-- `localStorage` 데이터의 백업·복원과 키 관리
-- 접근성 기본: 주요 조작 요소에 `aria-label` 부여
-- Netlify 보안 헤더와 캐시 헤더 설정 (`netlify.toml`)
+## Design
 
-## 사용한 자료
+There is no build step and no server. The page is static files, a service worker caches them, and all data lives in the browser.
 
-- MDN Web Docs (Service Worker, Web App Manifest, Web Storage)
-- Netlify 문서
+```mermaid
+flowchart LR
+    U["Browser"] --> H["index.html · styles.css"]
+    H --> A["app.js · tasks, theme, backup"]
+    H --> B["hub.js · timer, cards, habits, retrospectives"]
+    A --> S[("localStorage")]
+    B --> S
+    W["sw.js · service worker"] -.->|"caches static files"| H
+    S -.->|"export / import"| F["Backup file"]
+```
 
-## 결과
+## My role
 
-- 빌드 단계 없이 `index.html`을 그대로 배포할 수 있습니다.
-- 홈 화면 설치와 오프라인 실행을 지원합니다.
+Individual project: planning, interface design, implementation and deployment configuration.
 
-## 한계와 다음 단계
+## What I learned
 
-- 데이터가 브라우저의 `localStorage`에만 있어 기기 간 동기화가 되지 않습니다. 지금은 백업 파일로 옮겨야 합니다.
-- 자동화 테스트가 없습니다.
-- `hub.js`가 1,100줄을 넘어 기능별 모듈로 나눌 필요가 있습니다.
+- Keeping state and screen in sync without a framework (`js/app.js`, `js/hub.js`).
+- Caching static files with a service worker so the app opens offline.
+- Making a page installable with a web app manifest.
+- Backing up and restoring `localStorage` data, and managing its keys.
+- Accessibility basics: `aria-label` on the main controls.
+- Security and cache headers on Netlify (`netlify.toml`).
 
-## 실행
+## Resources used
+
+- MDN Web Docs: Service Worker, Web App Manifest, Web Storage
+- Netlify documentation
+
+## Results
+
+| Build step | npm packages | Install | Offline |
+| :---: | :---: | :---: | :---: |
+| **None** | **0** | **Home screen** | **Supported** |
+
+`index.html` deploys as it is.
+
+## Limitations and next steps
+
+| Limitation | Next step |
+| :--- | :--- |
+| Data lives in one browser's `localStorage` | Sync between devices; today it moves by backup file |
+| No automated tests | Unit tests for task and timer logic |
+| `hub.js` is over 1,100 lines | Split into modules by feature |
+
+## Run it
 
 ```bash
 python3 -m http.server 8000
 ```
 
-브라우저에서 `http://localhost:8000`을 엽니다. Service Worker는 `localhost`나 HTTPS에서만 동작합니다.
+Open `http://localhost:8000`. The service worker only runs on `localhost` or HTTPS.
