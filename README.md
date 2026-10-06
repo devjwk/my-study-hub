@@ -1,15 +1,11 @@
 <div align="center">
 
-# MY STUDY HUB
+<img src="assets/banner.svg" alt="MY STUDY HUB — Plan, focus, review and reflect in one installable page" width="100%">
 
-### Plan, focus, review and reflect in one installable page
-
-**HTML · CSS · JavaScript · no framework**
-
-![JavaScript](https://img.shields.io/badge/Code-Vanilla%20JS-F7DF1E?style=flat-square&labelColor=0F172A)
-![PWA](https://img.shields.io/badge/App-Installable%20PWA-6366F1?style=flat-square)
-![Offline](https://img.shields.io/badge/Works-Offline-0891B2?style=flat-square)
-![Build](https://img.shields.io/badge/Build%20step-None-F59E0B?style=flat-square)
+![JavaScript](https://img.shields.io/badge/Code-Vanilla%20JS-2563EB?style=flat-square&labelColor=1D4ED8)
+![PWA](https://img.shields.io/badge/App-Installable%20PWA-0EA5E9?style=flat-square&labelColor=1D4ED8)
+![Offline](https://img.shields.io/badge/Works-Offline-10B981?style=flat-square&labelColor=1D4ED8)
+![Build](https://img.shields.io/badge/Build%20step-None-F59E0B?style=flat-square&labelColor=1D4ED8)
 
 Personal project · March 2026
 
@@ -56,6 +52,7 @@ The interface is in Korean.
 There is no build step and no server. The page is static files, a service worker caches them, and all data lives in the browser.
 
 ```mermaid
+%%{init: {"theme": "base", "themeVariables": {"primaryColor": "#2563EB", "primaryTextColor": "#ffffff", "primaryBorderColor": "#1D4ED8", "lineColor": "#94A3B8", "secondaryColor": "#0EA5E9", "tertiaryColor": "#1D4ED8", "clusterBkg": "#F8FAFC", "clusterBorder": "#94A3B8", "edgeLabelBackground": "#F1F5F9", "fontFamily": "ui-sans-serif, system-ui, sans-serif"}}}%%
 flowchart LR
     U["Browser"] --> H["index.html · styles.css"]
     H --> A["app.js · tasks, theme, backup"]

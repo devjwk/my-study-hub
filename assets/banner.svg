@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 280" role="img" aria-label="MY STUDY HUB">
+<title>MY STUDY HUB</title>
+<style>
+.kick{font:700 15px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:3px;fill:#FDE047}
+.title{font:800 56px system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;letter-spacing:1.5px;fill:#ffffff}
+.tag{font:500 21px system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;fill:#ffffff;opacity:.86}
+.m{font:500 13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace} .mb{font:700 14px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace} .mbig{font:800 20px system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif} .big{font:800 30px system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif} .term{font:500 15px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.bar{fill:#FDE047}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1D4ED8"/><stop offset="1" stop-color="#0EA5E9"/></linearGradient></defs>
+<rect width="1200" height="280" rx="20" fill="url(#g)"/>
+<rect class="bar" x="64" y="62" width="44" height="5" rx="2.5"/>
+<text x="64" y="100" class="kick">HTML · CSS · JAVASCRIPT · NO FRAMEWORK</text>
+<text x="64" y="158" class="title">MY STUDY HUB</text>
+<text x="64" y="196" class="tag">Plan, focus, review and reflect in one installable</text>
+<text x="64" y="224" class="tag">page</text>
+<g transform="translate(810,50)"><rect x="0" y="0" width="165" height="84" rx="12" fill="#ffffff" opacity=".12"/><rect x="0" y="0" width="8" height="84" rx="4" fill="#FDE047" /><text x="24" y="32" class="mbig" text-anchor="start" fill="#fff">Plan</text><rect x="24" y="46" width="90" height="6" rx="3" fill="#ffffff" opacity=".45"/><rect x="24" y="59" width="68" height="6" rx="3" fill="#ffffff" opacity=".45"/><rect x="175" y="0" width="165" height="84" rx="12" fill="#ffffff" opacity=".12"/><rect x="175" y="0" width="8" height="84" rx="4" fill="#FB7185" /><text x="199" y="32" class="mbig" text-anchor="start" fill="#fff">Focus</text><circle cx="303" cy="46" r="20" fill="none" stroke="#ffffff" stroke-opacity=".25" stroke-width="5"/><circle cx="303" cy="46" r="20" fill="none" stroke="#FDE047" stroke-width="5" stroke-dasharray="88 126" transform="rotate(-90 303 46)"/><rect x="0" y="94" width="165" height="84" rx="12" fill="#ffffff" opacity=".12"/><rect x="0" y="94" width="8" height="84" rx="4" fill="#34D399" /><text x="24" y="126" class="mbig" text-anchor="start" fill="#fff">Review</text><rect x="24" y="140" width="90" height="6" rx="3" fill="#ffffff" opacity=".45"/><rect x="24" y="153" width="68" height="6" rx="3" fill="#ffffff" opacity=".45"/><rect x="175" y="94" width="165" height="84" rx="12" fill="#ffffff" opacity=".12"/><rect x="175" y="94" width="8" height="84" rx="4" fill="#A78BFA" /><text x="199" y="126" class="mbig" text-anchor="start" fill="#fff">Reflect</text><rect x="199" y="140" width="90" height="6" rx="3" fill="#ffffff" opacity=".45"/><rect x="199" y="153" width="68" height="6" rx="3" fill="#ffffff" opacity=".45"/></g>
+</svg>
