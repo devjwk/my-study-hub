@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="학습·할 일·포모도로·회고를 한곳에서 관리합니다." />
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <title>My Study Hub — 학습 &amp; 할 일</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icons/icon-192.png" sizes="192x192" type="image/png" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div class="hub">
+      <header class="hub-bar">
+        <button type="button" class="btn btn--ghost hub-bar__back" id="btn-hub-back" hidden>
+          ← 홈
+        </button>
+        <span class="hub-bar__brand" id="hub-brand">My Study Hub</span>
+        <div class="hub-bar__fill" aria-hidden="true"></div>
+        <button type="button" class="btn btn--ghost" id="btn-theme" aria-label="테마 전환">
+          <span class="theme-icon" data-theme-light>☀️</span>
+          <span class="theme-icon hidden" data-theme-dark>🌙</span>
+        </button>
+      </header>
+
+      <main class="hub-main">
+        <!-- 메인: 인사 · 이름 · 시계 · 하단 6개 아이콘 -->
+        <section id="view-home" class="view view--active" aria-label="메인 화면">
+          <div class="home-top">
+            <p class="home-greeting">안녕하세요!</p>
+            <label class="home-name-label">
+              <span class="sr-only">사용자 이름</span>
+              <input
+                type="text"
+                id="input-user-name"
+                class="input home-name-input"
+                placeholder="이름을 입력하세요"
+                maxlength="40"
+                autocomplete="nickname"
+              />
+            </label>
+          </div>
+
+          <div class="home-center">
+            <div class="home-clock-card">
+              <span class="home-clock-card__eyebrow">현재 시간</span>
+              <p class="home-clock" id="home-clock">--:--:--</p>
+              <p class="home-date" id="home-date">—</p>
+            </div>
+          </div>
+
+          <section class="home-stats" aria-label="나의 요약 지표">
+            <h2 class="home-stats__heading">오늘의 요약</h2>
+            <div class="home-stat stat">
+              <span class="stat__value" id="home-stat-streak">0</span>
+              <span class="stat__label">연속 학습일</span>
+            </div>
+            <div class="home-stat stat">
+              <span class="stat__value"><span id="home-stat-focus">0</span>분</span>
+              <span class="stat__label">오늘 집중</span>
+            </div>
+            <div class="home-stat stat" id="home-stat-review-wrap">
+              <span class="stat__value" id="home-stat-review-due">0</span>
+              <span class="stat__label">복습 도래</span>
+            </div>
+            <div class="home-stat stat" id="home-stat-tasks-wrap">
+              <span class="stat__value" id="home-stat-tasks">0</span>
+              <span class="stat__label">할 일 미완료</span>
+              <span class="home-stat__sub" id="home-stat-tasks-hint" hidden></span>
+            </div>
+            <div class="home-stat stat">
+              <span class="stat__value" id="home-stat-milestones">0</span>
+              <span class="stat__label">누적 완료</span>
+            </div>
+            <div class="home-stat stat">
+              <span class="stat__value" id="home-stat-cards">0</span>
+              <span class="stat__label">플래시 카드</span>
+            </div>
+          </section>
+
+          <nav class="home-dock" aria-label="학습·할 일 메뉴">
+            <button type="button" class="dock-btn" data-hub-view="review">
+              <span class="dock-btn__icon" aria-hidden="true">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linejoin="round">
+                  <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path d="M12 7v5l3 2" stroke-linecap="round" />
+                </svg>
+              </span>
+              <span class="dock-btn__label">복습 · 기억</span>
+            </button>
+            <button type="button" class="dock-btn" data-hub-view="focus">
+              <span class="dock-btn__icon" aria-hidden="true">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linejoin="round">
+                  <circle cx="12" cy="13" r="7" />
+                  <path d="M12 9v4l2 2M9 3h6M12 3v2" stroke-linecap="round" />
+                </svg>
+              </span>
+              <span class="dock-btn__label">집중 · 시간</span>
+            </button>
+            <button type="button" class="dock-btn" data-hub-view="organize">
+              <span class="dock-btn__icon" aria-hidden="true">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linejoin="round">
+                  <path d="M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1" stroke-linecap="round" />
+                </svg>
+              </span>
+              <span class="dock-btn__label">구조화 · 할 일</span>
+            </button>
+            <button type="button" class="dock-btn" data-hub-view="reflect">
+              <span class="dock-btn__icon" aria-hidden="true">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linejoin="round">
+                  <path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 13v2h8v-2a7 7 0 00-4-13z" stroke-linejoin="round" />
+                </svg>
+              </span>
+              <span class="dock-btn__label">피드백 · 회고</span>
+            </button>
+            <button type="button" class="dock-btn" data-hub-view="cards">
+              <span class="dock-btn__icon" aria-hidden="true">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linejoin="round">
+                  <rect x="4" y="4" width="14" height="10" rx="1.5" />
+                  <rect x="6" y="10" width="14" height="10" rx="1.5" />
+                </svg>
+              </span>
+              <span class="dock-btn__label">플래시 카드</span>
+            </button>
+            <button type="button" class="dock-btn" data-hub-view="habit">
+              <span class="dock-btn__icon" aria-hidden="true">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linejoin="round">
+                  <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7L12 17.8 5.7 21l2.3-7-6-4.6h7.6L12 2z" stroke-linejoin="round" />
+                </svg>
+              </span>
+              <span class="dock-btn__label">동기 · 습관</span>
+            </button>
+          </nav>
+        </section>
+
+        <!-- 1 복습 -->
+        <section id="view-review" class="view learning-pane" aria-label="복습 기억">
+          <div class="pane-intro">
+            <h2 class="pane-intro__title">복습 · 기억</h2>
+            <p class="pane-intro__desc">다음 복습일을 정하고, 복습할 때 난이도에 따라 다음 일정이 자동으로 밀립니다.</p>
+          </div>
+          <form id="form-review-add" class="learning-form-card">
+            <div class="learning-form-row">
+              <input
+                type="text"
+                id="input-review-title"
+                class="input"
+                placeholder="복습 주제 (예: ch.3 개념)"
+                maxlength="200"
+                required
+              />
+              <label class="field field--inline">
+                <span class="field__label">첫 복습(일 뒤)</span>
+                <input type="number" id="input-review-first-days" class="input input--narrow" value="1" min="0" max="365" />
+              </label>
+              <button type="submit" class="btn btn--primary">추가</button>
+            </div>
+          </form>
+          <ul class="learning-list" id="list-review"></ul>
+          <details class="learning-data-reset">
+            <summary class="learning-data-reset__summary">이 탭 데이터 초기화</summary>
+            <p class="learning-data-reset__desc">복습 목록만 삭제합니다. 다른 탭 데이터는 그대로입니다.</p>
+            <button type="button" class="btn btn--ghost learning-data-reset__btn" id="btn-reset-review-data">
+              복습 항목 전부 삭제…
+            </button>
+          </details>
+        </section>
+
+        <!-- 2 집중 -->
+        <section id="view-focus" class="view learning-pane" aria-label="집중 시간">
+          <div class="pane-intro">
+            <h2 class="pane-intro__title">집중 · 포모도로</h2>
+            <p class="pane-intro__desc">
+              집중 / 짧은 휴식 / 긴 휴식을 바꿔 가며 씁니다. 한 사이클이 끝나면 기록되고, 알림음·자동 시작·시간은 아래에서 조절할 수 있습니다.
+            </p>
+          </div>
+
+          <div class="pomodoro focus-card" id="pomodoro-root">
+            <div class="pomodoro__meta">
+              <span class="pomodoro__phase" id="pomo-phase-label">집중</span>
+              <span class="pomodoro__round" id="pomo-round-label" aria-live="polite">다음 긴 휴식까지 · 1/4</span>
+            </div>
+
+            <div class="pomodoro__ring-wrap">
+              <svg class="pomodoro__svg" viewBox="0 0 100 100" aria-hidden="true">
+                <circle class="pomodoro__ring-bg" cx="50" cy="50" r="44" pathLength="100" />
+                <circle
+                  class="pomodoro__ring-progress"
+                  id="pomo-ring-progress"
+                  cx="50"
+                  cy="50"
+                  r="44"
+                  pathLength="100"
+                  transform="rotate(-90 50 50)"
+                />
+              </svg>
+              <div class="pomodoro__center">
+                <p class="pomodoro__time" id="focus-display">25:00</p>
+                <p class="pomodoro__hint" id="pomo-hint"></p>
+              </div>
+            </div>
+
+            <div class="pomodoro__modes" role="tablist" aria-label="타이머 모드">
+              <button type="button" class="pomodoro__mode chip" id="pomo-mode-work" role="tab" aria-selected="true" data-pomo-mode="work">
+                집중
+              </button>
+              <button type="button" class="pomodoro__mode chip" id="pomo-mode-short" role="tab" aria-selected="false" data-pomo-mode="short">
+                짧은 휴식
+              </button>
+              <button type="button" class="pomodoro__mode chip" id="pomo-mode-long" role="tab" aria-selected="false" data-pomo-mode="long">
+                긴 휴식
+              </button>
+            </div>
+
+            <div class="pomodoro__controls">
+              <button type="button" class="btn btn--primary" id="btn-pomo-start">시작</button>
+              <button type="button" class="btn btn--secondary" id="btn-pomo-pause">일시 정지</button>
+              <button type="button" class="btn btn--ghost" id="btn-pomo-skip">건너뛰기</button>
+              <button type="button" class="btn btn--ghost" id="btn-pomo-reset">이 단계 리셋</button>
+            </div>
+
+            <details class="pomodoro__details">
+              <summary class="pomodoro__summary">시간 · 자동 시작 · 알림</summary>
+              <div class="pomodoro__settings">
+                <label class="field">
+                  <span class="field__label">집중 (분)</span>
+                  <input type="number" id="pomo-set-work" class="input input--narrow" min="1" max="180" value="25" />
+                </label>
+                <label class="field">
+                  <span class="field__label">짧은 휴식 (분)</span>
+                  <input type="number" id="pomo-set-short" class="input input--narrow" min="1" max="60" value="5" />
+                </label>
+                <label class="field">
+                  <span class="field__label">긴 휴식 (분)</span>
+                  <input type="number" id="pomo-set-long" class="input input--narrow" min="1" max="60" value="15" />
+                </label>
+                <label class="field">
+                  <span class="field__label">긴 휴식 주기 (집중 개수)</span>
+                  <input type="number" id="pomo-set-interval" class="input input--narrow" min="1" max="12" value="4" />
+                </label>
+                <label class="pomodoro__check">
+                  <input type="checkbox" id="pomo-pref-autostart" />
+                  단계가 끝나면 다음 단계 자동 시작 (1초 뒤)
+                </label>
+                <label class="pomodoro__check">
+                  <input type="checkbox" id="pomo-pref-sound" checked />
+                  끝날 때 알림음 (브라우저에서 소리 허용 필요)
+                </label>
+              </div>
+            </details>
+            <p class="pomodoro__toast" id="pomo-toast" role="status" aria-live="polite" hidden></p>
+          </div>
+
+          <h3 class="learning-subtitle">최근 기록</h3>
+          <ul class="learning-list learning-list--compact" id="list-focus-log"></ul>
+          <details class="learning-data-reset">
+            <summary class="learning-data-reset__summary">이 탭 데이터 초기화</summary>
+            <p class="learning-data-reset__desc">
+              집중 기록과 포모도로 설정(분·주기·자동 시작·알림)을 기본값으로 되돌립니다. 진행 중인 타이머는 멈춥니다.
+            </p>
+            <button type="button" class="btn btn--ghost learning-data-reset__btn" id="btn-reset-focus-data">
+              포모도로 기록·설정 초기화…
+            </button>
+          </details>
+          <p class="pomodoro__kbd-hint"><kbd>Space</kbd> 시작/일시 정지 · <kbd>S</kbd> 건너뛰기 · <kbd>R</kbd> 리셋 (이 화면에 있을 때)</p>
+        </section>
+
+        <!-- 3 구조화 = 기존 할 일 전체 -->
+        <section id="view-organize" class="view" aria-label="구조화 할 일">
+          <div class="app app--embed">
+            <header class="header header--embed">
+              <div class="header__brand">
+                <span class="header__logo" aria-hidden="true">✓</span>
+                <div>
+                  <h1 class="header__title">구조화 · 할 일</h1>
+                  <p class="header__subtitle">우선순위·마감·태그·마일스톤 별자리</p>
+                </div>
+              </div>
+              <div class="header__actions">
+                <button type="button" class="btn btn--secondary" id="btn-export">전체 백업</button>
+                <label class="btn btn--secondary btn--file">
+                  백업 복원
+                  <input type="file" id="input-import" accept="application/json" hidden />
+                </label>
+              </div>
+            </header>
+            <p class="header__backup-hint">
+              Netlify 주소로 접속해도 데이터는 <strong>각자의 브라우저</strong>에만 저장됩니다. 같은 PC·같은
+              브라우저로 다시 들어오면 이어집니다. 다른 기기에서는
+              <strong>전체 백업</strong> 파일을 옮겨 <strong>백업 복원</strong>하세요. 예전 할 일만 담긴 JSON도
+              그대로 가져올 수 있습니다.
+            </p>
+
+            <section class="milestone-track" aria-labelledby="milestone-title">
+              <div class="milestone-track__head">
+                <div>
+                  <h2 id="milestone-title" class="milestone-track__title">완료 마일스톤</h2>
+                  <p class="milestone-track__desc" id="milestone-summary">
+                    할 일을 완료하면 여기에 누적됩니다.
+                  </p>
+                </div>
+                <div class="milestone-track__aside">
+                  <span class="milestone-track__badge" id="milestone-count" aria-hidden="true">0</span>
+                  <button
+                    type="button"
+                    class="btn btn--ghost milestone-track__reset"
+                    id="btn-milestone-reset"
+                    aria-label="완료 마일스톤 누적 횟수 초기화"
+                  >
+                    누적 리셋
+                  </button>
+                </div>
+              </div>
+              <div
+                class="constellation"
+                id="milestone-constellation"
+                role="img"
+                aria-label="완료 마일스톤 별자리"
+              >
+                <svg
+                  class="constellation__svg"
+                  viewBox="0 0 400 132"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                >
+                  <defs>
+                    <filter id="constellation-glow" x="-80%" y="-80%" width="260%" height="260%">
+                      <feGaussianBlur stdDeviation="1.4" result="blur" />
+                      <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                    <radialGradient id="constellation-star-core" cx="35%" cy="35%" r="65%">
+                      <stop offset="0%" stop-color="#fffef5" />
+                      <stop offset="45%" stop-color="#fcd34d" />
+                      <stop offset="100%" stop-color="#d97706" />
+                    </radialGradient>
+                  </defs>
+                  <g class="constellation__tracks" stroke-linecap="round">
+                    <line x1="36" y1="90" x2="112" y2="34" />
+                    <line x1="112" y1="34" x2="174" y2="84" />
+                    <line x1="174" y1="84" x2="246" y2="30" />
+                    <line x1="246" y1="30" x2="302" y2="78" />
+                    <line x1="302" y1="78" x2="368" y2="40" />
+                  </g>
+                  <g class="constellation__fills" stroke-linecap="round" fill="none">
+                    <line id="const-line-0" x1="36" y1="90" x2="112" y2="34" />
+                    <line id="const-line-1" x1="112" y1="34" x2="174" y2="84" />
+                    <line id="const-line-2" x1="174" y1="84" x2="246" y2="30" />
+                    <line id="const-line-3" x1="246" y1="30" x2="302" y2="78" />
+                    <line id="const-line-4" x1="302" y1="78" x2="368" y2="40" />
+                  </g>
+                  <g class="constellation__nodes" text-anchor="middle">
+                    <g id="const-star-0" class="constellation__node" transform="translate(36,90)">
+                      <circle class="constellation__dot" r="6" />
+                      <text class="constellation__num" y="20">1</text>
+                    </g>
+                    <g id="const-star-1" class="constellation__node" transform="translate(112,34)">
+                      <circle class="constellation__dot" r="6" />
+                      <text class="constellation__num" y="20">5</text>
+                    </g>
+                    <g id="const-star-2" class="constellation__node" transform="translate(174,84)">
+                      <circle class="constellation__dot" r="6" />
+                      <text class="constellation__num" y="20">10</text>
+                    </g>
+                    <g id="const-star-3" class="constellation__node" transform="translate(246,30)">
+                      <circle class="constellation__dot" r="6" />
+                      <text class="constellation__num" y="20">25</text>
+                    </g>
+                    <g id="const-star-4" class="constellation__node" transform="translate(302,78)">
+                      <circle class="constellation__dot" r="6" />
+                      <text class="constellation__num" y="20">50</text>
+                    </g>
+                    <g id="const-star-5" class="constellation__node" transform="translate(368,40)">
+                      <circle class="constellation__dot" r="6" />
+                      <text class="constellation__num" y="20">100</text>
+                    </g>
+                  </g>
+                </svg>
+              </div>
+              <p class="milestone-track__next" id="milestone-next"></p>
+              <ol class="milestone-track__steps" id="milestone-steps"></ol>
+            </section>
+
+            <section class="stats" aria-label="통계">
+              <div class="stat">
+                <span class="stat__value" id="stat-total">0</span>
+                <span class="stat__label">전체</span>
+              </div>
+              <div class="stat">
+                <span class="stat__value" id="stat-active">0</span>
+                <span class="stat__label">진행</span>
+              </div>
+              <div class="stat">
+                <span class="stat__value" id="stat-done">0</span>
+                <span class="stat__label">완료</span>
+              </div>
+              <div class="stat stat--accent">
+                <span class="stat__value" id="stat-overdue">0</span>
+                <span class="stat__label">지연</span>
+              </div>
+            </section>
+
+            <form class="composer" id="form-add" autocomplete="off">
+              <div class="composer__row">
+                <input
+                  type="text"
+                  id="input-title"
+                  class="input input--lg"
+                  placeholder="할 일을 입력하고 Enter…"
+                  maxlength="500"
+                  required
+                  aria-label="할 일 제목"
+                />
+                <button type="submit" class="btn btn--primary">추가</button>
+              </div>
+              <div class="composer__meta">
+                <label class="field">
+                  <span class="field__label">우선순위</span>
+                  <select id="select-priority" class="input" aria-label="우선순위">
+                    <option value="low">낮음</option>
+                    <option value="medium" selected>보통</option>
+                    <option value="high">높음</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span class="field__label">마감</span>
+                  <input type="datetime-local" id="input-due" class="input" aria-label="마감 일시" />
+                </label>
+                <label class="field field--grow">
+                  <span class="field__label">태그 (쉼표로 구분)</span>
+                  <input type="text" id="input-tags" class="input" placeholder="업무, 개인" aria-label="태그" />
+                </label>
+              </div>
+            </form>
+
+            <div class="toolbar">
+              <div class="toolbar__search">
+                <span class="toolbar__icon" aria-hidden="true">🔍</span>
+                <input
+                  type="search"
+                  id="input-search"
+                  class="input"
+                  placeholder="제목·태그 검색…"
+                  aria-label="검색"
+                />
+              </div>
+              <div class="toolbar__filters" role="group" aria-label="필터">
+                <button type="button" class="chip chip--active" data-filter="all">전체</button>
+                <button type="button" class="chip" data-filter="active">진행 중</button>
+                <button type="button" class="chip" data-filter="completed">완료</button>
+                <button type="button" class="chip" data-filter="today">오늘</button>
+                <button type="button" class="chip" data-filter="overdue">지연</button>
+              </div>
+              <div class="toolbar__sort">
+                <label class="field field--inline">
+                  <span class="field__label">정렬</span>
+                  <select id="select-sort" class="input input--sm" aria-label="정렬">
+                    <option value="created-desc">만든 순 (최신)</option>
+                    <option value="created-asc">만든 순 (오래됨)</option>
+                    <option value="due-asc">마감 빠른 순</option>
+                    <option value="due-desc">마감 늦은 순</option>
+                    <option value="priority-desc">우선순위 높은 순</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            <p class="hint" id="bulk-hint" hidden>
+              <button type="button" class="link" id="btn-clear-done">완료 항목 일괄 삭제</button>
+            </p>
+
+            <p class="organize-reset-hint">
+              <button type="button" class="link link--danger" id="btn-clear-all-tasks">모든 할 일 삭제…</button>
+              <span class="organize-reset-hint__note">(마일스톤 누적은 유지 · 「누적 리셋」으로 초기화)</span>
+            </p>
+
+            <ul class="task-list" id="task-list" aria-live="polite"></ul>
+
+            <p class="empty" id="empty-state" hidden>할 일이 없습니다. 위에서 새 항목을 추가해 보세요.</p>
+
+            <footer class="footer">
+              <span
+                >데이터는 서버로 보내지 않고 이 브라우저에만 저장됩니다. 배포 URL을 써도 이용자·브라우저마다 따로
+                유지됩니다.</span
+              >
+              <span class="kbd-hint"><kbd>Enter</kbd> 추가 · 항목에서 <kbd>편집</kbd>으로 수정</span>
+            </footer>
+          </div>
+        </section>
+
+        <!-- 4 회고 -->
+        <section id="view-reflect" class="view learning-pane" aria-label="피드백 회고">
+          <div class="pane-intro">
+            <h2 class="pane-intro__title">피드백 · 회고</h2>
+            <p class="pane-intro__desc">오늘의 이해도를 스스로 평가하고 메모를 남깁니다.</p>
+          </div>
+          <form id="form-reflect" class="learning-form-card">
+            <fieldset class="reflect-levels">
+              <legend class="field__label">이해 정도</legend>
+              <label class="reflect-radio"
+                ><input type="radio" name="reflect-level" value="ok" /> 잘 이해함</label
+              >
+              <label class="reflect-radio"
+                ><input type="radio" name="reflect-level" value="mid" checked /> 애매함</label
+              >
+              <label class="reflect-radio"
+                ><input type="radio" name="reflect-level" value="hard" /> 어려움</label
+              >
+            </fieldset>
+            <label class="field">
+              <span class="field__label">메모</span>
+              <textarea id="input-reflect-note" class="input input--textarea" rows="3" placeholder="막힌 점, 다음에 할 일…" maxlength="2000"></textarea>
+            </label>
+            <button type="submit" class="btn btn--primary">회고 저장</button>
+          </form>
+          <ul class="learning-list" id="list-reflect"></ul>
+          <details class="learning-data-reset">
+            <summary class="learning-data-reset__summary">이 탭 데이터 초기화</summary>
+            <p class="learning-data-reset__desc">저장된 회고만 삭제합니다.</p>
+            <button type="button" class="btn btn--ghost learning-data-reset__btn" id="btn-reset-reflect-data">
+              회고 전부 삭제…
+            </button>
+          </details>
+        </section>
+
+        <!-- 5 카드 -->
+        <section id="view-cards" class="view learning-pane" aria-label="플래시 카드">
+          <div class="pane-intro">
+            <h2 class="pane-intro__title">학습 카드</h2>
+            <p class="pane-intro__desc">앞면·뒷면을 넣고 카드를 눌러 뒤집어 보세요.</p>
+          </div>
+          <form id="form-card-add" class="learning-form-card">
+            <div class="learning-form-stack">
+              <input type="text" id="input-card-front" class="input" placeholder="앞면 (질문)" maxlength="500" />
+              <input type="text" id="input-card-back" class="input" placeholder="뒷면 (답)" maxlength="500" />
+              <button type="submit" class="btn btn--primary">카드 추가</button>
+            </div>
+          </form>
+          <div class="flash-grid" id="grid-cards"></div>
+          <details class="learning-data-reset">
+            <summary class="learning-data-reset__summary">이 탭 데이터 초기화</summary>
+            <p class="learning-data-reset__desc">플래시 카드만 삭제합니다.</p>
+            <button type="button" class="btn btn--ghost learning-data-reset__btn" id="btn-reset-cards-data">
+              카드 전부 삭제…
+            </button>
+          </details>
+        </section>
+
+        <!-- 6 동기 -->
+        <section id="view-habit" class="view learning-pane" aria-label="동기 습관">
+          <div class="pane-intro">
+            <h2 class="pane-intro__title">동기 · 습관</h2>
+            <p class="pane-intro__desc">연속 학습일과 마일스톤·집중 시간을 한눈에 봅니다.</p>
+          </div>
+          <div class="habit-hero">
+            <p class="habit-hero__label">연속 학습일</p>
+            <p class="habit-hero__value" id="habit-streak">0</p>
+            <p class="habit-hero__hint">집중 세션 완료·복습 처리·회고·할 일 완료 시 오늘 첫 활동으로 인정됩니다.</p>
+            <button type="button" class="btn btn--primary" id="btn-habit-checkin">오늘 학습 인증하기</button>
+          </div>
+          <p class="habit-extra" id="habit-extra"></p>
+          <details class="learning-data-reset">
+            <summary class="learning-data-reset__summary">이 탭 데이터 초기화</summary>
+            <p class="learning-data-reset__desc">연속 학습일 카운트만 0으로 돌립니다. (집중 기록 등 다른 탭은 그대로)</p>
+            <button type="button" class="btn btn--ghost learning-data-reset__btn" id="btn-reset-streak-data">
+              연속 학습일 초기화…
+            </button>
+          </details>
+        </section>
+      </main>
+
+      <div class="hub-settings" id="hub-settings-root">
+        <div
+          class="hub-settings__panel"
+          id="hub-settings-panel"
+          hidden
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="hub-settings-title"
+        >
+          <div class="hub-settings__head">
+            <h2 class="hub-settings__title" id="hub-settings-title">설정</h2>
+            <button
+              type="button"
+              class="btn btn--ghost hub-settings__close"
+              id="btn-hub-settings-close"
+              aria-label="설정 닫기"
+            >
+              닫기
+            </button>
+          </div>
+          <div class="hub-settings__body">
+            <section class="hub-settings__section" aria-labelledby="hub-settings-bg-label">
+              <h3 class="hub-settings__section-title" id="hub-settings-bg-label">배경 색</h3>
+              <div class="home-tint home-tint--panel" aria-label="배경 색 혼합">
+                <span class="home-tint__label">배경에 섞일 색</span>
+                <div class="home-tint__controls">
+                  <input type="color" id="input-bg-tint-color" class="home-tint__color" value="#2563eb" title="원하는 색" />
+                  <input
+                    type="range"
+                    id="input-bg-tint-alpha"
+                    class="home-tint__range"
+                    min="0"
+                    max="40"
+                    value="14"
+                    aria-label="화면에 섞일 색의 강도"
+                    title="테마 배경과 섞이는 비율 (높을수록 색이 진해짐)"
+                  />
+                </div>
+              </div>
+            </section>
+            <section class="hub-settings__section" aria-labelledby="hub-settings-data-label">
+              <h3 class="hub-settings__section-title" id="hub-settings-data-label">데이터 초기화</h3>
+              <p class="hub-settings__hint">
+                각 학습 탭에도 개별 초기화가 있습니다. 여기서는 이름·배경·테마·저장소 전체를 다룹니다. 클라우드
+                동기화는 없으며, 다른 기기에서는 구조화 탭의 <strong>전체 백업 · 백업 복원</strong>을 이용하세요.
+              </p>
+              <div class="hub-settings__row">
+                <button type="button" class="btn btn--ghost btn--sm" id="btn-reset-hub-appearance">
+                  이름·배경 기본값
+                </button>
+                <button type="button" class="btn btn--ghost btn--sm" id="btn-reset-theme-stored">테마 저장값 지우기</button>
+              </div>
+              <button type="button" class="btn btn--ghost hub-settings__danger" id="btn-reset-all-local">
+                이 브라우저 저장 데이터 전부 삭제…
+              </button>
+            </section>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="hub-settings__fab"
+          id="btn-hub-settings-toggle"
+          aria-expanded="false"
+          aria-controls="hub-settings-panel"
+          title="설정"
+        >
+          <span class="hub-settings__fab-icon" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+              />
+            </svg>
+          </span>
+          <span class="sr-only">설정 열기</span>
+        </button>
+      </div>
+    </div>
+
+    <dialog class="modal" id="modal-edit" aria-labelledby="modal-edit-title">
+      <form method="dialog" class="modal__inner" id="form-edit">
+        <h2 id="modal-edit-title" class="modal__title">할 일 수정</h2>
+        <input type="hidden" id="edit-id" />
+        <label class="field">
+          <span class="field__label">제목</span>
+          <input type="text" id="edit-title" class="input" required maxlength="500" />
+        </label>
+        <label class="field">
+          <span class="field__label">우선순위</span>
+          <select id="edit-priority" class="input">
+            <option value="low">낮음</option>
+            <option value="medium">보통</option>
+            <option value="high">높음</option>
+          </select>
+        </label>
+        <label class="field">
+          <span class="field__label">마감</span>
+          <input type="datetime-local" id="edit-due" class="input" />
+        </label>
+        <label class="field">
+          <span class="field__label">태그</span>
+          <input type="text" id="edit-tags" class="input" placeholder="쉼표로 구분" />
+        </label>
+        <div class="modal__actions">
+          <button type="button" class="btn btn--ghost" id="btn-edit-cancel">취소</button>
+          <button type="submit" class="btn btn--primary">저장</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>
