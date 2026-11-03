@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 430" fill="none">
+  <defs>
+    <linearGradient id="mist" x2="0" y2="1"><stop stop-color="#b1b9ac"/><stop offset="1" stop-color="#ece1cd"/></linearGradient>
+    <pattern id="etch" width="8" height="6" patternUnits="userSpaceOnUse"><path d="M0 5l6-2" stroke="#554d41" opacity=".32" stroke-width=".65"/></pattern>
+    <g id="pine"><path d="M0 0l-5 14 3-1-7 11 4-1-8 12 11-3v8h3v-9l10 3-7-11 4 1-6-10 3 1z" fill="currentColor"/></g>
+  </defs>
+  <path fill="url(#mist)" d="M0 0h800v430H0z"/>
+  <circle cx="572" cy="97" r="45" fill="#ead1a2"/>
+  <path d="M0 179q75-25 122-21t100 8q56 2 127-39t97-6q70 37 136-6t119-28l99 27v122H0z" fill="#99a69a"/>
+  <path d="M0 217q88-50 146-33t130 6q73-30 122-22t113-8q69-39 140-21t149-21v117H0z" fill="#798b80"/>
+  <path d="M0 222q96-5 201 2t154 3q98-7 191-31t254-29v263H0z" fill="#c2c3af"/>
+  <path d="M800 173q-132-3-207 26t-214 32q-86 0-148 12 98-6 186 3t179-8q54-18 204-24z" fill="#718378"/>
+  <path d="M800 226q-52 4-101 25-54 25-172 28t-153 13q114-5 173 2 127 8 253-15z" fill="#949d88"/>
+  <path d="M191 172q156-10 301-46l2 7q-160 37-302 48z" fill="#4b5950"/>
+  <path d="M211 178l5-1v36l-5 1zm53-6l6-1v39h-6zm58-9l6-1v45h-6zm59-11l6-1v48h-6zm61-15l6-1v48h-6z" fill="#65756a"/>
+  <g fill="#4d574c" transform="rotate(-10 361 145)"><rect x="325" y="142" width="28" height="9" rx="2"/><rect x="355" y="142" width="29" height="9" rx="2"/><rect x="386" y="142" width="29" height="9" rx="2"/></g>
+  <path d="M0 302q137-28 232-6t187 33q97 14 184-2t197-23v126H0z" fill="#899480"/>
+  <path d="M0 344q105-34 241-8t200 10q98-18 165-16t194-33v133H0z" fill="#65796b"/>
+  <path d="M0 361q133-27 246 0t236-1q149-32 318-48v118H0z" fill="url(#etch)"/>
+  <g color="#53695b"><use href="#pine" transform="translate(682 281) scale(1.6)"/><use href="#pine" transform="translate(704 267) scale(1.9)"/><use href="#pine" transform="translate(641 299)"/><use href="#pine" transform="translate(740 260) scale(1.8)"/><use href="#pine" transform="translate(778 239) scale(2.1)"/></g>
+  <g stroke="#eee2c9" stroke-linecap="round" opacity=".64"><path d="M42 250h90m20 4h68m60 9h140m-207 9h38m85-22h56m98-15h56m-65 28h88m-268 26h52"/></g>
+  <path d="M451 96q4-3 8 1 4-4 8-3m16-10q3-1 6 2 3-3 6-2" stroke="#616c60" stroke-width="1.3"/>
+</svg>

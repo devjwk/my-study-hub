@@ -36,27 +36,15 @@
       <main class="hub-main">
         <!-- 메인: 인사 · 이름 · 시계 · 하단 6개 아이콘 -->
         <section id="view-home" class="view view--active" aria-label="메인 화면">
-          <div class="home-top">
-            <p class="home-greeting">안녕하세요!</p>
-            <label class="home-name-label">
-              <span class="sr-only">사용자 이름</span>
-              <input
-                type="text"
-                id="input-user-name"
-                class="input home-name-input"
-                placeholder="이름을 입력하세요"
-                maxlength="40"
-                autocomplete="nickname"
-              />
-            </label>
-          </div>
-
           <section class="study-hero" aria-labelledby="resume-title">
-            <div class="hero-date"><span>STUDY DESK &nbsp; / &nbsp; 01</span><span id="home-date"></span></div>
-            <p id="home-clock" class="desk-clock"></p>
-            <h1 id="resume-title">오늘의 집중 공간</h1>
-            <p id="resume-summary"></p>
-            <button id="resume-study" class="btn btn--primary">집중 시작</button>
+            <div class="desk-landscape" aria-hidden="true"></div>
+            <div class="hero-copy">
+              <div class="hero-date"><span>STUDY JOURNAL</span><span id="home-date"></span></div>
+              <p id="home-clock" class="desk-clock"></p>
+              <h1 id="resume-title">오늘의 집중 공간</h1>
+              <p id="resume-summary"></p>
+              <button id="resume-study" class="btn btn--primary">집중 시작</button>
+            </div>
           </section>
           <div class="desk-grid">
             <section class="desk-panel"><small>AGENDA</small><h2>오늘 할 일</h2>
@@ -615,6 +603,7 @@
           </div>
           <div class="hub-settings__body">
             <section class="hub-settings__section" aria-labelledby="hub-settings-bg-label">
+              <label class="field"><span>사용자 이름</span><input type="text" id="input-user-name" class="input" placeholder="이름을 입력하세요" maxlength="40" autocomplete="nickname"></label>
               <h3 class="hub-settings__section-title" id="hub-settings-bg-label">배경 색</h3>
               <div class="home-tint home-tint--panel" aria-label="배경 색 혼합">
                 <span class="home-tint__label">배경에 섞일 색</span>

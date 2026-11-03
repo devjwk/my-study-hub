@@ -957,7 +957,11 @@ function renderDesk() {
   for (const task of agenda.slice(0, 4)) {
     const row = document.createElement("button");
     row.className = "agenda-row";
-    row.textContent = task.title + " · " + taskProgress(task, store.logs);
+    const title = document.createElement("strong");
+    title.textContent = task.title;
+    const progress = document.createElement("span");
+    progress.textContent = taskProgress(task, store.logs);
+    row.append(title, progress);
     row.setAttribute("aria-label", task.title + " 집중 시작");
     row.onclick = () => startTaskFocus(task);
     list.append(row);
@@ -1041,7 +1045,7 @@ function updateClock() {
     clock.textContent = now.toLocaleTimeString("ko-KR", {
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
+
       hour12: false,
     });
   }
