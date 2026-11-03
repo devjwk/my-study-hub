@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 380" role="img" aria-label="Static files in the browser; app.js and hub.js read and write localStorage; the service worker caches the files; data moves between devices by backup file">
+<title>How My Study Hub fits together</title>
+<style>
+.t{font:600 16px system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;fill:#161816}
+.s{font:400 13px system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;fill:#5d625e}
+.w{font:600 16px system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;fill:#ffffff}
+.ws{font:400 13px system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;fill:#ffffff;opacity:.85}
+.l{stroke:#5d625e;stroke-width:1.5;fill:none}
+.d{stroke:#5d625e;stroke-width:1.5;fill:none;stroke-dasharray:5 5}
+</style>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5d625e"/></marker></defs>
+<rect width="1000" height="380" fill="#f1f0ec"/>
+
+<rect x="30" y="150" width="150" height="70" fill="#e4e2dc"/>
+<text x="52" y="182" class="t">Browser</text><text x="52" y="203" class="s">phone or desktop</text>
+
+<rect x="240" y="150" width="190" height="70" fill="#e4e2dc"/>
+<text x="262" y="182" class="t">index.html</text><text x="262" y="203" class="s">styles.css · assets/</text>
+
+<rect x="500" y="60" width="230" height="80" fill="#e4e2dc"/>
+<text x="522" y="94" class="t">app.js</text><text x="522" y="116" class="s">tasks · theme · backup</text>
+
+<rect x="500" y="230" width="230" height="96" fill="#e4e2dc"/>
+<text x="522" y="262" class="t">hub.js</text><text x="522" y="284" class="s">home · focus · review</text><text x="522" y="302" class="s">cards · reflect · habit</text>
+
+<rect x="800" y="150" width="170" height="70" fill="#0f7d56"/>
+<text x="822" y="182" class="w">localStorage</text><text x="822" y="203" class="ws">all data, this browser</text>
+
+<rect x="240" y="20" width="190" height="60" fill="none" stroke="#5d625e" stroke-width="1.5" stroke-dasharray="5 5"/>
+<text x="262" y="46" class="t">sw.js</text><text x="262" y="66" class="s">caches files for offline</text>
+
+<rect x="800" y="290" width="170" height="60" fill="none" stroke="#5d625e" stroke-width="1.5" stroke-dasharray="5 5"/>
+<text x="822" y="316" class="t">Backup file</text><text x="822" y="336" class="s">.json, moves devices</text>
+
+<path class="l" d="M180 185H236" marker-end="url(#a)"/>
+<path class="l" d="M430 175L496 110" marker-end="url(#a)"/>
+<path class="l" d="M430 195L496 260" marker-end="url(#a)"/>
+<path class="l" d="M730 100L796 170" marker-end="url(#a)"/>
+<path class="l" d="M730 270L796 200" marker-end="url(#a)"/>
+<path class="d" d="M335 80V146" marker-end="url(#a)"/>
+<path class="d" d="M885 224V286" marker-start="url(#a)" marker-end="url(#a)"/>
+</svg>
