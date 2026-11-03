@@ -75,8 +75,8 @@ h1, h2, h3, p { margin: 0; }
 .btn--danger:hover { color: var(--warn); text-decoration: underline; }
 .btn:disabled { opacity: .4; cursor: default; }
 .btn--file { position: relative; }
-#resume-study, #btn-pomo-start, #btn-habit-checkin { background: var(--green); color: var(--green-ink); }
-#resume-study:hover, #btn-pomo-start:hover, #btn-habit-checkin:hover { background: var(--ink); color: var(--bg); }
+#resume-study, #btn-pomo-start, #btn-pomo-pause, #btn-habit-checkin { background: var(--green); color: var(--green-ink); }
+#resume-study:hover, #btn-pomo-start:hover, #btn-pomo-pause:hover, #btn-habit-checkin:hover { background: var(--ink); color: var(--bg); }
 
 /* ── 입력 ───────────────────────────────── */
 .input {

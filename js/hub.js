@@ -25,6 +25,51 @@ export const HUB_STORAGE_KEYS = [
   ACTIVITY_KEY,
 ];
 
+const BASE_BG = { light: [241, 240, 236], dark: [20, 22, 21] };
+
+function luminance([r, g, b]) {
+  const f = (c) => ((c /= 255) <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+}
+
+function contrast(a, b) {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+function hslToRgb(h, s, l) {
+  const k = (n) => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  return [0, 8, 4].map((n) => Math.round(255 * (l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1)))));
+}
+
+function rgbToHsl([r, g, b]) {
+  [r, g, b] = [r / 255, g / 255, b / 255];
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2, d = max - min;
+  if (!d) return [0, 0, l];
+  const s = d / (1 - Math.abs(2 * l - 1));
+  const h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return [(h * 60 + 360) % 360, s, l];
+}
+
+/**
+ * 고른 색과 같은 색상(hue)으로, 배경 위에서 글자로 읽히는(대비 4.5 이상) 대표색을 만든다.
+ * 라이트는 어둡게, 다크는 밝게 밝기만 옮긴다.
+ * @param {number[]} rgb 고른 색 @param {number[]} bg 실제 배경 @param {boolean} dark
+ */
+export function accentFor(rgb, bg, dark) {
+  const [h, s0, l0] = rgbToHsl(rgb);
+  const s = s0 < 0.08 ? s0 : Math.max(s0, 0.38); // 회색은 회색으로 둔다
+  // 먼저 테마 쪽(라이트는 어둡게, 다크는 밝게)으로, 안 되면 반대로 찾는다
+  for (const step of dark ? [0.02, -0.02] : [-0.02, 0.02]) {
+    for (let l = step < 0 ? Math.min(l0, 0.42) : Math.max(l0, 0.55); l > 0 && l < 1; l += step) {
+      const out = hslToRgb(h, s, l);
+      if (contrast(out, bg) >= 4.5) return out;
+    }
+  }
+  return contrast([0, 0, 0], bg) > contrast([255, 255, 255], bg) ? [0, 0, 0] : [255, 255, 255];
+}
+
 /** 슬라이더·색 저장값으로 베이스 배경과 원색을 color-mix (불투명) */
 export function applyBackgroundTint() {
   const colorEl = document.getElementById("input-bg-tint-color");
@@ -57,6 +102,19 @@ export function applyBackgroundTint() {
   root.style.setProperty("--bg-tint-mix-strong", `${strong.toFixed(1)}%`);
   root.style.setProperty("--bg-tint-mix-soft", `${soft.toFixed(1)}%`);
   root.style.setProperty("--bg-tint-mix-corner", `${corner.toFixed(1)}%`);
+
+  // 대표색: 기본(진하기 0)이면 테마 기본 녹색, 아니면 고른 색에서 계산
+  if (strengthPct === 0) {
+    root.style.removeProperty("--green");
+    root.style.removeProperty("--green-ink");
+  } else {
+    const base = BASE_BG[isDark ? "dark" : "light"];
+    const bg = base.map((c, i) => Math.round(c + ([r, g, b][i] - c) * (mix / 100)));
+    const accent = accentFor([r, g, b], bg, isDark);
+    root.style.setProperty("--green", `rgb(${accent.join(" ")})`);
+    const ink = [12, 26, 19];
+    root.style.setProperty("--green-ink", contrast(accent, [255, 255, 255]) >= contrast(accent, ink) ? "#ffffff" : "#0c1a13");
+  }
   syncTintSwatches(hex, strengthPct);
 }
 
