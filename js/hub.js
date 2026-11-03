@@ -9,6 +9,7 @@ export const USER_NAME_KEY = "hub-user-name";
 const BG_TINT_HEX_KEY = "hub-bg-tint-hex";
 const BG_TINT_ALPHA_KEY = "hub-bg-tint-alpha";
 const DAILY_GOAL_KEY = "hub-daily-goal";
+const ACTIVITY_KEY = "learning-activity-v1";
 
 /** Netlify 등 배포 후 전체 백업·복원(app.js)에서 사용 */
 export const HUB_STORAGE_KEYS = [
@@ -21,6 +22,7 @@ export const HUB_STORAGE_KEYS = [
   BG_TINT_HEX_KEY,
   BG_TINT_ALPHA_KEY,
   DAILY_GOAL_KEY,
+  ACTIVITY_KEY,
 ];
 
 /** 슬라이더·색 저장값으로 베이스 배경과 원색을 color-mix (불투명) */
@@ -118,9 +120,22 @@ function saveStreak(s) {
   localStorage.setItem(STREAK_KEY, JSON.stringify(s));
 }
 
-/** 오늘 첫 학습 활동 시 연속일 +1 (같은 날 중복 호출 무시) */
+/** @returns {Record<string, number>} 날짜(YYYY-MM-DD)별 활동 횟수 */
+function loadActivity() {
+  try {
+    const o = JSON.parse(localStorage.getItem(ACTIVITY_KEY) || "{}");
+    return o && typeof o === "object" && !Array.isArray(o) ? o : {};
+  } catch {
+    return {};
+  }
+}
+
+/** 오늘 활동 +1, 오늘 첫 활동이면 연속일 +1 */
 export function recordStudyDay() {
   const t = todayYMD();
+  const activity = loadActivity();
+  activity[t] = (Number(activity[t]) || 0) + 1;
+  localStorage.setItem(ACTIVITY_KEY, JSON.stringify(activity));
   const s = loadStreak();
   if (s.last === t) return;
   const y = yesterdayYMD();
@@ -728,6 +743,7 @@ function resetEntireWorkspace() {
   saveReflect([]);
   saveCards([]);
   saveStreak({ last: null, count: 0 });
+  localStorage.removeItem(ACTIVITY_KEY);
   localStorage.removeItem(USER_NAME_KEY);
   localStorage.setItem(BG_TINT_HEX_KEY, "#0f7d56");
   localStorage.setItem(BG_TINT_ALPHA_KEY, "0");
@@ -1046,13 +1062,15 @@ function reflectThisWeek() {
 
 export function renderHomeStats() {
   renderDesk();
+  renderContrib("home-contrib", 53, { monthsId: "home-contrib-months", summaryId: "home-contrib-summary" });
   const store = loadFocusStore();
   setText("home-stat-streak", loadStreak().count);
   setText("home-stat-milestones", hubOptions.getMilestoneCount());
   setText("home-stat-cards", loadCards().length);
   setText("tile-reflect-num", reflectThisWeek());
-  setText("tile-focus-num", store.session ? Math.ceil(focusSecondsLeft / 60) : store.settings.work);
-  setText("tile-focus-sub", store.session ? "남은 시간 · 이어서 하기" : "한 번 집중하는 시간");
+  setText("tile-focus-sub", store.session
+    ? `${Math.ceil(focusSecondsLeft / 60)}분 남았어요 · 이어서 하기`
+    : `한 번에 ${store.settings.work}분씩`);
 
   const due = dueReviewCount();
   setText("home-stat-review-due", due);
@@ -1079,29 +1097,76 @@ function renderHabitView() {
     ? "오늘도 체크됐어요."
     : s.count ? "오늘은 아직이에요. 하나만 해도 이어져요." : "오늘부터 시작해 볼까요?";
   extraEl.innerHTML = `${lead} 오늘 <strong>${min}분</strong> 집중했고, 지금까지 할 일을 <strong>${done}개</strong> 끝냈어요.`;
-  renderHeatmap();
+  renderContrib("habit-heat", 26);
 }
 
-/** 최근 26주 집중 분을 날짜별로 칠한다 (일요일 시작 열) */
-function renderHeatmap() {
-  const grid = document.getElementById("habit-heat");
-  if (!grid) return;
-  const perDay = new Map();
+/** 날짜별 활동 횟수. 과거 날짜는 집중·회고 기록으로 채운다 (중복 없이 큰 쪽) */
+function activityByDay() {
+  const derived = new Map();
+  const minutes = new Map();
+  const bump = (map, key, n) => map.set(key, (map.get(key) || 0) + n);
   for (const log of loadFocusLogs()) {
     if (log.kind && log.kind !== "work") continue;
     const key = todayYMD(new Date(log.at));
-    perDay.set(key, (perDay.get(key) || 0) + log.minutes);
+    bump(derived, key, 1);
+    bump(minutes, key, log.minutes);
   }
-  const start = new Date();
-  start.setDate(start.getDate() - 26 * 7 + 1);
+  for (const e of loadReflect()) bump(derived, todayYMD(new Date(e.at)), 1);
+  const days = new Map(derived);
+  for (const [key, n] of Object.entries(loadActivity())) days.set(key, Math.max(n, derived.get(key) || 0));
+  return { days, minutes };
+}
+
+/**
+ * GitHub 잔디처럼 최근 n주를 칠한다 (열 = 주, 일요일 시작).
+ * @param {string} gridId @param {number} weeks @param {{ monthsId?: string, summaryId?: string }} [opts]
+ */
+function renderContrib(gridId, weeks, opts = {}) {
+  const grid = document.getElementById(gridId);
+  if (!grid) return;
+  const { days, minutes } = activityByDay();
+  const today = new Date();
+  const start = new Date(today);
+  start.setDate(start.getDate() - (weeks - 1) * 7);
   start.setDate(start.getDate() - start.getDay());
+
+  const months = opts.monthsId ? document.getElementById(opts.monthsId) : null;
+  if (months) {
+    months.replaceChildren();
+    months.style.gridTemplateColumns = `repeat(${weeks}, var(--cell))`;
+  }
+  grid.style.gridTemplateColumns = `repeat(${weeks}, var(--cell))`;
   grid.replaceChildren();
-  for (const d = new Date(start); d <= new Date(); d.setDate(d.getDate() + 1)) {
-    const m = perDay.get(todayYMD(d)) || 0;
+
+  let active = 0, run = 0, best = 0, col = 0, lastMonth = -1;
+  for (const d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
+    if (d.getDay() === 0) {
+      col += 1;
+      if (months && d.getMonth() !== lastMonth && col < weeks - 1) {
+        const label = document.createElement("span");
+        label.textContent = `${d.getMonth() + 1}월`;
+        label.style.gridColumn = `${col} / span 3`;
+        months.append(label);
+      }
+      lastMonth = d.getMonth();
+    }
+    const key = todayYMD(d);
+    const n = days.get(key) || 0;
+    const m = minutes.get(key) || 0;
+    if (n) { active += 1; run += 1; best = Math.max(best, run); } else run = 0;
     const cell = document.createElement("i");
-    cell.dataset.lv = m === 0 ? "0" : m < 50 ? "1" : m < 100 ? "2" : "3";
-    cell.title = `${d.toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" })} · ${m ? m + "분" : "쉰 날"}`;
+    cell.dataset.lv = n === 0 ? "0" : n === 1 ? "1" : n <= 3 ? "2" : n <= 5 ? "3" : "4";
+    if (key === todayYMD()) cell.classList.add("is-today");
+    const when = d.toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" });
+    cell.title = n ? `${when} · ${n}번 공부${m ? ` · 집중 ${m}분` : ""}` : `${when} · 쉰 날`;
     grid.append(cell);
+  }
+
+  const summary = opts.summaryId ? document.getElementById(opts.summaryId) : null;
+  if (summary) {
+    summary.textContent = active
+      ? `지난 1년 동안 ${active}일 공부했어요 · 가장 길게 이어간 건 ${best}일`
+      : "공부한 날이 여기에 초록색으로 쌓여요.";
   }
 }
 

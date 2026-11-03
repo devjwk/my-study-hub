@@ -169,25 +169,46 @@ body:not(:has(#view-home.view--active)) .hub-bar__date { visibility: hidden; }
 .guide { font-size: clamp(1.25rem, 2.2vw, 1.6rem); line-height: 1.5; font-weight: 500; letter-spacing: -.02em; max-width: 32rem; }
 .guide em { font-style: normal; color: var(--green); }
 
-/* 모든 기능 — 직각 타일 */
-.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
-@media (max-width: 900px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.tile {
-  border: 0; background: var(--surface); color: var(--ink); text-align: left; cursor: pointer;
-  padding: 1.2rem 1.2rem 1.1rem; min-height: 10.5rem;
-  display: grid; grid-template-rows: auto 1fr auto; gap: .2rem;
-  transition: background .15s, color .15s;
+/* 모든 기능 — 아이콘 + 이름 */
+.apps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .4rem 2rem; padding: .4rem 0; }
+@media (max-width: 900px) { .apps { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .2rem 1.2rem; } }
+.app {
+  display: flex; align-items: center; gap: .9rem; text-align: left; cursor: pointer;
+  border: 0; background: transparent; color: var(--ink); padding: .8rem 0; min-width: 0;
 }
-.tile:hover { background: var(--ink); color: var(--bg); }
-.tile:hover .tile__sub { color: inherit; opacity: .75; }
-.tile__num { font: 400 2.9rem/1 var(--num); letter-spacing: -.02em; }
-.tile__num--text { font-family: var(--sans); font-size: 1.6rem; font-weight: 600; letter-spacing: -.03em; line-height: 1.6; }
-.tile__sub { font-size: 14px; color: var(--sub); }
-.tile__name { font-weight: 600; font-size: 15px; margin-top: .8rem; }
-.tile.stat--accent .tile__num { color: var(--warn); }
-.tile.stat--accent:hover .tile__num { color: inherit; }
+.app__icon { width: 28px; height: 28px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: square; stroke-linejoin: miter; transition: color .15s, transform .15s; }
+.app__text { display: grid; min-width: 0; }
+.app__name { font-weight: 600; font-size: 16px; }
+.app__sub { font-size: 13.5px; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.app:hover .app__icon, .app:focus-visible .app__icon { color: var(--green); transform: translateY(-1px); }
+.app:hover .app__name { color: var(--green); }
+.app.stat--accent .app__count { color: var(--warn); font-weight: 600; }
 #home-stat-tasks-hint { color: var(--warn); font-weight: 500; }
-.tile:hover #home-stat-tasks-hint { color: inherit; }
+
+/* 공부한 날 — GitHub 잔디 */
+.contrib-wrap .section-title { margin-top: 2.6rem; }
+@media (max-width: 600px) { .contrib-wrap .section-title { display: block; } .contrib-wrap .section-title__aside { display: block; margin-top: .2rem; } }
+/* rtl: 가로 스크롤이 생기면 오늘(오른쪽 끝)부터 보인다 */
+.contrib-scroll { overflow-x: auto; scrollbar-width: none; container-type: inline-size; direction: rtl; }
+.contrib { direction: ltr; }
+.contrib-scroll::-webkit-scrollbar { display: none; }
+.contrib { --cell: 13px; --gap: 3px; display: grid; grid-template-columns: auto auto; grid-template-areas: ". months" "days grid"; column-gap: .5rem; row-gap: 4px; width: max-content; }
+.contrib--plain { grid-template-columns: auto; grid-template-areas: "grid"; }
+/* 홈 잔디는 가로 폭을 꽉 채운다 (53주 + 요일 칸), 좁으면 11px로 두고 가로 스크롤 */
+.contrib:not(.contrib--plain) { --cell: max(11px, calc((100cqw - 1.4rem - 52 * var(--gap)) / 53)); }
+.contrib--plain { --cell: 15px; }
+.contrib__months { grid-area: months; display: grid; column-gap: var(--gap); font-size: 12px; color: var(--sub); }
+.contrib__months span { white-space: nowrap; }
+.contrib__days { grid-area: days; display: grid; grid-template-rows: repeat(7, var(--cell)); row-gap: var(--gap); font-size: 11px; line-height: var(--cell); color: var(--sub); }
+.contrib__grid { grid-area: grid; display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, var(--cell)); gap: var(--gap); }
+.contrib__grid i, .heat-legend i { display: block; width: var(--cell, 11px); height: var(--cell, 11px); background: var(--surface); }
+.contrib__grid i.is-today { outline: 1.5px solid var(--ink); outline-offset: -1.5px; }
+[data-lv="1"] { background: color-mix(in srgb, var(--green) 28%, var(--surface)) !important; }
+[data-lv="2"] { background: color-mix(in srgb, var(--green) 52%, var(--surface)) !important; }
+[data-lv="3"] { background: color-mix(in srgb, var(--green) 76%, var(--surface)) !important; }
+[data-lv="4"] { background: var(--green) !important; }
+.heat-legend { display: flex; gap: 3px; align-items: center; justify-content: flex-end; font-size: 12px; color: var(--sub); margin-top: .6rem; }
+.heat-legend i { --cell: 11px; }
 
 .split { display: grid; grid-template-columns: 1.15fr 1fr; gap: 3.5rem; }
 @media (max-width: 760px) { .split { grid-template-columns: 1fr; gap: 0; } }
@@ -348,13 +369,6 @@ body[data-room="studio"] { --room-art: url("../assets/studio.svg"); }
 
 /* 습관 */
 #habit-extra strong { color: var(--green); font-weight: 600; }
-.heat { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 14px); grid-auto-columns: 14px; gap: 3px; overflow-x: auto; padding-bottom: .3rem; }
-.heat i { background: var(--surface); }
-.heat i[data-lv="1"] { background: color-mix(in srgb, var(--green) 35%, var(--surface)); }
-.heat i[data-lv="2"] { background: color-mix(in srgb, var(--green) 65%, var(--surface)); }
-.heat i[data-lv="3"] { background: var(--green); }
-.heat-legend { display: flex; gap: 4px; align-items: center; justify-content: flex-end; font-size: 13px; color: var(--sub); margin-top: .5rem; }
-.heat-legend i { width: 11px; height: 11px; display: inline-block; }
 
 /* 수정 창 */
 .modal { border: 0; padding: 0; background: var(--bg); color: var(--ink); width: min(100% - 32px, 34rem); box-shadow: 0 30px 80px -20px rgb(0 0 0 / .4); }
