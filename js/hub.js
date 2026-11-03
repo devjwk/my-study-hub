@@ -8,6 +8,7 @@ const STREAK_KEY = "learning-streak-v1";
 export const USER_NAME_KEY = "hub-user-name";
 const BG_TINT_HEX_KEY = "hub-bg-tint-hex";
 const BG_TINT_ALPHA_KEY = "hub-bg-tint-alpha";
+const DAILY_GOAL_KEY = "hub-daily-goal";
 
 /** Netlify 등 배포 후 전체 백업·복원(app.js)에서 사용 */
 export const HUB_STORAGE_KEYS = [
@@ -19,6 +20,7 @@ export const HUB_STORAGE_KEYS = [
   USER_NAME_KEY,
   BG_TINT_HEX_KEY,
   BG_TINT_ALPHA_KEY,
+  DAILY_GOAL_KEY,
 ];
 
 /** 슬라이더·색 저장값으로 베이스 배경과 원색을 color-mix (불투명) */
@@ -26,9 +28,9 @@ export function applyBackgroundTint() {
   const colorEl = document.getElementById("input-bg-tint-color");
   const rangeEl = document.getElementById("input-bg-tint-alpha");
   let hex =
-    colorEl instanceof HTMLInputElement ? colorEl.value : localStorage.getItem(BG_TINT_HEX_KEY) || "#2563eb";
-  if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) hex = "#2563eb";
-  let strengthPct = 14;
+    colorEl instanceof HTMLInputElement ? colorEl.value : localStorage.getItem(BG_TINT_HEX_KEY) || "#0f7d56";
+  if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) hex = "#0f7d56";
+  let strengthPct = 0;
   if (rangeEl instanceof HTMLInputElement) strengthPct = parseInt(rangeEl.value, 10) || 0;
   else {
     const s = localStorage.getItem(BG_TINT_ALPHA_KEY);
@@ -75,6 +77,10 @@ let hubOptions = {
 
 /** 홈 지표: 시계와 함께 가끔만 갱신 (체류 중에도 대략 최신) */
 let lastHomeStatsAt = 0;
+
+function dailyGoal() {
+  return clampInt(10, 900, localStorage.getItem(DAILY_GOAL_KEY) || 120);
+}
 
 function uid() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
@@ -253,16 +259,17 @@ function renderReview() {
     li.innerHTML = `
       <div class="learning-row__main">
         <strong class="learning-row__title"></strong>
-        <span class="learning-row__meta">${due ? "복습 시점 도래 · " : "다음 복습 · "}${when}</span>
+        <span class="learning-row__meta">${due ? "오늘 볼 차례" : `${when}에 다시 봐요`}</span>
       </div>
       <div class="learning-row__actions"></div>
     `;
     li.querySelector(".learning-row__title").textContent = it.title;
     const actions = li.querySelector(".learning-row__actions");
-    [["easy", "쉬움 +7일", 7], ["good", "보통 +3일", 3], ["hard", "어려움 +1일", 1]].forEach(([key, label, days]) => {
+    [["easy", "쉬웠어요 · 7일 뒤", 7], ["good", "그럭저럭 · 3일 뒤", 3], ["hard", "어려웠어요 · 내일", 1]].forEach(([key, label, days]) => {
       const b = document.createElement("button");
       b.type = "button";
-      b.className = "btn btn--ghost btn--sm";
+      b.className = "btn btn--sm";
+      b.dataset.grade = key;
       b.textContent = label;
       b.addEventListener("click", () => {
         const next = addDaysIso(new Date().toISOString(), days);
@@ -276,7 +283,7 @@ function renderReview() {
     const del = document.createElement("button");
     del.type = "button";
     del.className = "btn btn--ghost btn--sm";
-    del.textContent = "삭제";
+    del.textContent = "지우기";
     del.addEventListener("click", () => {
       saveReview(loadReview().filter((x) => x.id !== it.id));
       renderReview();
@@ -285,7 +292,7 @@ function renderReview() {
     ul.appendChild(li);
   }
   if (!items.length) {
-    ul.innerHTML = `<li class="learning-empty">복습 항목이 없습니다. 아래에서 추가해 보세요.</li>`;
+    ul.innerHTML = `<li class="learning-empty">복습할 게 아직 없어요. 위에서 하나 추가해 보세요.</li>`;
   }
 }
 
@@ -344,14 +351,14 @@ function restoreSession() {
 
 function setRoom(open) {
   pomodoroEl("view-focus").classList.toggle("immersed", open);
-  pomodoroEl("room-toggle").textContent = open ? "기본 보기" : "몰입 보기";
+  pomodoroEl("room-toggle").textContent = open ? "원래대로 보기" : "화면 가득 보기";
   pomodoroEl("room-toggle").setAttribute("aria-pressed", String(open));
 }
 
 export function startTaskFocus(task) {
   const changing = focusTask?.id !== task?.id;
   if (changing && (deadline || focusSecondsLeft < focusChunkTotalSeconds) &&
-      !confirm("진행 중인 단계를 종료하고 다른 할 일로 집중할까요?")) return;
+      !confirm("지금 타이머를 멈추고 다른 일로 바꿀까요?")) return;
   showView("focus");
   if (changing) {
     stopFocusTimer();
@@ -365,7 +372,8 @@ export function startTaskFocus(task) {
 
 export function taskProgress(task, logs = loadFocusLogs()) {
   const entries = logs.filter(log => log.kind === "work" && log.taskId === task.id);
-  return `${entries.length}/${task.goal}세션 · 누적 ${entries.reduce((sum, log) => sum + log.minutes, 0)}분`;
+  const minutes = entries.reduce((sum, log) => sum + log.minutes, 0);
+  return `집중 ${entries.length}/${task.goal}번` + (minutes ? ` · ${minutes}분` : "");
 }
 
 function pomodoroEl(id) {
@@ -440,7 +448,7 @@ function playPomodoroBeep() {
 }
 
 function syncPomodoroChrome() {
-  pomodoroEl("room-task").textContent = focusTask?.title || "자유 집중";
+  pomodoroEl("room-task").textContent = focusTask?.title || "자유롭게 집중";
   pomodoroEl("unlink-task").hidden = !focusTask;
   const phaseEl = pomodoroEl("pomo-phase-label");
   const roundEl = pomodoroEl("pomo-round-label");
@@ -450,35 +458,29 @@ function syncPomodoroChrome() {
 
   if (phaseEl) {
     if (pomoPhase === "work") phaseEl.textContent = "집중";
-    else if (pomoPhase === "short") phaseEl.textContent = "짧은 휴식";
-    else phaseEl.textContent = "긴 휴식";
+    else if (pomoPhase === "short") phaseEl.textContent = "짧게 쉬는 중";
+    else phaseEl.textContent = "길게 쉬는 중";
   }
 
   if (roundEl) {
     if (pomoPhase === "work") {
       const untilLong = interval - (pomoCompletedWorkInSet % interval);
-      roundEl.textContent = `이번 주기 · ${pomoCompletedWorkInSet + 1}번째 집중 · 긴 휴식까지 ${untilLong}회`;
+      roundEl.textContent = `${pomoCompletedWorkInSet % interval + 1}번째 · 길게 쉬기까지 ${untilLong}번 남음`;
     } else if (pomoPhase === "short") {
-      roundEl.textContent = "짧은 휴식 후 집중으로 돌아갑니다";
+      roundEl.textContent = "쉬고 나면 다시 집중해요";
     } else {
-      roundEl.textContent = `${interval}회 집중 후 긴 휴식`;
+      roundEl.textContent = `${interval}번 집중했으니 푹 쉬어요`;
     }
   }
 
   if (hintEl) {
-    if (focusTimerId) hintEl.textContent = "진행 중…";
-    else if (pomoPhase === "work") hintEl.textContent = "Space — 시작/일시 정지 · S — 건너뛰기 · R — 이 단계 리셋";
-    else hintEl.textContent = "휴식 — Space — 시작/일시 정지";
+    hintEl.textContent = "Space 시작·멈춤 · S 넘기기 · R 처음부터";
   }
 
-  const ring = /** @type {SVGCircleElement | null} */ (pomodoroEl("pomo-ring-progress"));
-  if (ring) {
+  const bar = pomodoroEl("pomo-bar");
+  if (bar) {
     const total = Math.max(1, focusChunkTotalSeconds);
-    const left = Math.max(0, focusSecondsLeft);
-    const rem = left / total;
-    const dash = 100 * (1 - rem);
-    ring.style.strokeDasharray = "100";
-    ring.style.strokeDashoffset = String(dash);
+    bar.style.width = `${100 * (1 - Math.max(0, focusSecondsLeft) / total)}%`;
   }
 
   document.querySelectorAll("[data-pomo-mode]").forEach((btn) => {
@@ -561,7 +563,7 @@ function tick() {
     renderHomeStats();
     if (pomodoroEl("view-organize").classList.contains("view--active")) hubOptions.onShowOrganize();
     playPomodoroBeep();
-    pomoToast(work ? "집중 완료. 휴식으로 이동합니다." : "휴식 끝. 집중할 시간입니다.", "good");
+    pomoToast(work ? "수고했어요. 잠깐 쉬어요." : "다 쉬었어요. 다시 집중해 볼까요?", "good");
     scheduleAutoStartNext();
   };
   if (navigator.locks) navigator.locks.request("study-hub-focus-completion", finish);
@@ -581,14 +583,14 @@ function pausePomodoro() {
 function skipPomodoroPhase() {
   stopFocusTimer();
   if (pomoPhase === "work") {
-    pomoToast("집중을 건너뛰었습니다. 짧은 휴식으로 이동합니다.", "neutral");
+    pomoToast("이번 집중은 넘겼어요. 잠깐 쉬어요.", "neutral");
     applyPhase("short");
   } else if (pomoPhase === "long") {
     pomoCompletedWorkInSet = 0;
-    pomoToast("긴 휴식을 건너뛰었습니다.", "neutral");
+    pomoToast("쉬는 시간을 넘겼어요.", "neutral");
     applyPhase("work");
   } else {
-    pomoToast("휴식을 건너뛰었습니다.", "neutral");
+    pomoToast("쉬는 시간을 넘겼어요.", "neutral");
     applyPhase("work");
   }
   scheduleAutoStartNext();
@@ -652,7 +654,7 @@ function hardResetPomodoroFromDisk() {
 }
 
 function resetReviewData() {
-  if (!confirm("복습 항목을 모두 삭제할까요? 되돌릴 수 없습니다.")) return;
+  if (!confirm("복습 목록을 전부 지울까요? 되돌릴 수 없어요.")) return;
   saveReview([]);
   renderReview();
   renderHomeStats();
@@ -661,7 +663,7 @@ function resetReviewData() {
 function resetFocusData() {
   if (
     !confirm(
-      "포모도로 집중 기록·시간·긴 휴식 주기·자동 시작·알림 설정을 기본값으로 초기화할까요?\n진행 중인 타이머도 멈춥니다.",
+      "집중 기록과 시간·알림 설정을 처음 상태로 돌릴까요?\n돌아가던 타이머도 멈춰요.",
     )
   ) {
     return;
@@ -673,49 +675,49 @@ function resetFocusData() {
 }
 
 function resetReflectData() {
-  if (!confirm("저장된 회고를 모두 삭제할까요?")) return;
+  if (!confirm("회고를 전부 지울까요?")) return;
   saveReflect([]);
   renderReflect();
 }
 
 function resetCardsData() {
-  if (!confirm("플래시 카드를 모두 삭제할까요?")) return;
+  if (!confirm("카드를 전부 지울까요?")) return;
   saveCards([]);
   renderCards();
   renderHomeStats();
 }
 
 function resetStreakData() {
-  if (!confirm("연속 학습일 기록을 초기화할까요? (0일부터 다시 셉니다.)")) return;
+  if (!confirm("연속 기록을 0일로 돌릴까요?")) return;
   saveStreak({ last: null, count: 0 });
   renderHabitView();
   renderHomeStats();
 }
 
 function resetHubAppearance() {
-  if (!confirm("홈 이름·배경 색(색상·강도)을 기본값으로 되돌릴까요?")) return;
+  if (!confirm("이름과 배경 색을 처음 상태로 돌릴까요?")) return;
   localStorage.removeItem(USER_NAME_KEY);
-  localStorage.setItem(BG_TINT_HEX_KEY, "#2563eb");
-  localStorage.setItem(BG_TINT_ALPHA_KEY, "14");
+  localStorage.setItem(BG_TINT_HEX_KEY, "#0f7d56");
+  localStorage.setItem(BG_TINT_ALPHA_KEY, "0");
   const nameInput = document.getElementById("input-user-name");
   if (nameInput instanceof HTMLInputElement) nameInput.value = "";
   const tintColor = document.getElementById("input-bg-tint-color");
   const tintAlpha = document.getElementById("input-bg-tint-alpha");
-  if (tintColor instanceof HTMLInputElement) tintColor.value = "#2563eb";
-  if (tintAlpha instanceof HTMLInputElement) tintAlpha.value = "14";
+  if (tintColor instanceof HTMLInputElement) tintColor.value = "#0f7d56";
+  if (tintAlpha instanceof HTMLInputElement) tintAlpha.value = "0";
   applyBackgroundTint();
   renderHomeStats();
 }
 
 function resetThemePreference() {
-  if (!confirm("화면 테마(라이트/다크)에 저장한 선택을 지웁니다.\n시스템 설정을 따르게 됩니다. 계속할까요?")) return;
+  if (!confirm("밝게·어둡게 선택을 지우고 기기 설정을 따라갈까요?")) return;
   hubOptions.onResetTheme?.();
 }
 
 function resetEntireWorkspace() {
   if (
     !confirm(
-      "이 브라우저에 저장된 데이터를 모두 지울까요?\n\n· 복습·포모도로(기록·설정)·회고·카드·연속 학습일\n· 할 일·완료 누적·마일스톤 별자리\n· 홈 이름·배경 색·테마 저장값\n\n복구할 수 없습니다.",
+      "이 브라우저에 저장된 걸 전부 지울까요?\n\n할 일, 집중 기록, 복습, 카드, 회고, 연속 기록, 이름과 배경 설정이 모두 사라지고 되돌릴 수 없어요.\n필요하면 먼저 백업 파일을 받아두세요.",
     )
   ) {
     return;
@@ -727,14 +729,14 @@ function resetEntireWorkspace() {
   saveCards([]);
   saveStreak({ last: null, count: 0 });
   localStorage.removeItem(USER_NAME_KEY);
-  localStorage.setItem(BG_TINT_HEX_KEY, "#2563eb");
-  localStorage.setItem(BG_TINT_ALPHA_KEY, "14");
+  localStorage.setItem(BG_TINT_HEX_KEY, "#0f7d56");
+  localStorage.setItem(BG_TINT_ALPHA_KEY, "0");
   const nameInput = document.getElementById("input-user-name");
   if (nameInput instanceof HTMLInputElement) nameInput.value = "";
   const tintColor = document.getElementById("input-bg-tint-color");
   const tintAlpha = document.getElementById("input-bg-tint-alpha");
-  if (tintColor instanceof HTMLInputElement) tintColor.value = "#2563eb";
-  if (tintAlpha instanceof HTMLInputElement) tintAlpha.value = "14";
+  if (tintColor instanceof HTMLInputElement) tintColor.value = "#0f7d56";
+  if (tintAlpha instanceof HTMLInputElement) tintAlpha.value = "0";
   hubOptions.onClearAllTasks?.();
   hubOptions.onResetLifetimeProgress?.();
   hubOptions.onResetTheme?.();
@@ -752,7 +754,7 @@ function resetEntireWorkspace() {
 function clearAllTasksOnly() {
   if (
     !confirm(
-      "진행 중·완료된 할 일을 모두 삭제합니다.\n마일스톤 누적 숫자는 유지됩니다. (초기화는 상단「누적 리셋」)\n계속할까요?",
+      "할 일을 전부 지울까요?\n지금까지 끝낸 일 숫자는 그대로 남아요.",
     )
   ) {
     return;
@@ -848,8 +850,8 @@ function renderFocusLog() {
   const logs = loadFocusLogs().slice(-20).reverse();
   ul.innerHTML = "";
   const kindLabel = (k) => {
-    if (k === "short") return "짧은 휴식";
-    if (k === "long") return "긴 휴식";
+    if (k === "short") return "짧게 쉬기";
+    if (k === "long") return "길게 쉬기";
     return "집중";
   };
   for (const L of logs) {
@@ -862,10 +864,10 @@ function renderFocusLog() {
       hour: "2-digit",
       minute: "2-digit",
     });
-    li.textContent = `${when} · ${kindLabel(kind)} ${L.minutes}분${L.taskTitle ? " · " + L.taskTitle : ""}`;
+    li.textContent = `${when} · ${L.taskTitle || kindLabel(kind)} · ${L.minutes}분`;
     ul.appendChild(li);
   }
-  if (!logs.length) ul.innerHTML = `<li class="learning-empty">아직 세션 기록이 없습니다.</li>`;
+  if (!logs.length) ul.innerHTML = `<li class="learning-empty">아직 기록이 없어요. 첫 집중을 시작해 보세요.</li>`;
 }
 
 function renderReflect() {
@@ -876,13 +878,18 @@ function renderReflect() {
   for (const e of entries) {
     const li = document.createElement("li");
     li.className = "learning-panel";
-    const lv = e.level === "ok" ? "잘 이해함" : e.level === "mid" ? "애매함" : "어려움";
-    li.innerHTML = `<p class="learning-panel__meta"></p><p class="learning-panel__body"></p>`;
-    li.querySelector(".learning-panel__meta").textContent = `${new Date(e.at).toLocaleString("ko-KR")} · ${lv}`;
-    li.querySelector(".learning-panel__body").textContent = e.note || "(메모 없음)";
+    const lv = e.level === "ok" ? "잘 이해했어요" : e.level === "mid" ? "조금 헷갈려요" : "어려웠어요";
+    li.innerHTML = `<p class="learning-panel__meta"><b></b><span></span></p><p class="learning-panel__body"></p>`;
+    const levelEl = li.querySelector(".learning-panel__meta b");
+    levelEl.textContent = lv;
+    levelEl.className = `lv-${e.level}`;
+    li.querySelector(".learning-panel__meta span").textContent = new Date(e.at).toLocaleString("ko-KR", {
+      month: "long", day: "numeric", weekday: "short", hour: "2-digit", minute: "2-digit",
+    });
+    li.querySelector(".learning-panel__body").textContent = e.note || "메모 없이 남겼어요.";
     ul.appendChild(li);
   }
-  if (!entries.length) ul.innerHTML = `<li class="learning-empty">회고를 남기면 여기에 쌓입니다.</li>`;
+  if (!entries.length) ul.innerHTML = `<li class="learning-empty">남긴 회고가 여기에 쌓여요.</li>`;
 }
 
 function renderCards() {
@@ -899,7 +906,7 @@ function renderCards() {
         <div class="flash-card__face flash-card__front"></div>
         <div class="flash-card__face flash-card__back"></div>
       </div>
-      <button type="button" class="btn btn--ghost btn--sm flash-card__del">삭제</button>
+      <button type="button" class="btn btn--ghost btn--sm flash-card__del">지우기</button>
     `;
     wrap.querySelector(".flash-card__front").textContent = c.front;
     wrap.querySelector(".flash-card__back").textContent = c.back;
@@ -915,7 +922,7 @@ function renderCards() {
     grid.appendChild(wrap);
   }
   if (!cards.length) {
-    grid.innerHTML = `<p class="learning-empty learning-empty--block">앞·뒤를 입력해 카드를 추가하세요. 카드를 눌러 뒤집을 수 있습니다.</p>`;
+    grid.innerHTML = `<p class="learning-empty learning-empty--block">아직 카드가 없어요. 질문과 답을 적어서 하나 만들어 보세요.</p>`;
   }
 }
 
@@ -942,98 +949,159 @@ function agendaTasks() {
     .sort((a, b) => (a.due || "9999").localeCompare(b.due || "9999") || b.createdAt - a.createdAt);
 }
 
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = String(value);
+}
+
+function homeGuide(today, goal, session, next) {
+  const name = (localStorage.getItem(USER_NAME_KEY) || "").trim();
+  const safe = name.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  const hi = safe ? `${safe}님, ` : "";
+  const work = loadFocusStore().settings.work;
+  if (session) {
+    const left = Math.ceil(focusSecondsLeft / 60);
+    const what = session.task?.title ? `<em></em> ` : "";
+    return { html: `${hi}${what}${session.phase === "work" ? "집중" : "쉬는 시간"}이 ${left}분 남았어요.`, task: session.task?.title };
+  }
+  const remain = goal - today;
+  const nextPart = next ? ` 다음은 <em></em>예요.` : "";
+  if (today === 0) return { html: `${hi}오늘은 아직 시작 전이에요. ${work}분만 해볼까요?${nextPart}`, task: next?.title };
+  if (remain <= 0) return { html: `${hi}오늘 목표를 채웠어요. 더 해도 좋고, 여기서 쉬어도 좋아요.`, task: null };
+  const rounds = Math.ceil(remain / work);
+  return { html: `${hi}${remain}분만 더 하면 오늘 목표예요. ${work}분씩 ${rounds}번이면 돼요.${nextPart}`, task: next?.title };
+}
+
 function renderDesk() {
   const agenda = agendaTasks();
   const store = loadFocusStore();
   const session = store.session;
-  const task = session ? session.task : agenda[0];
-  pomodoroEl("resume-title").textContent = task?.title || "오늘의 집중 공간";
-  pomodoroEl("resume-summary").textContent = session
-    ? (session.phase === "work" ? "집중" : "휴식") + " · " + Math.ceil(focusSecondsLeft / 60) + "분 남음"
-    : "다음 " + store.settings.work + "분 동안 한 가지에 집중하세요.";
-  pomodoroEl("resume-study").textContent = session ? "이어서 공부하기 →" : "집중 시작 →";
+  const today = todayWorkMinutes();
+  const goal = dailyGoal();
+
+  setText("home-stat-focus", today);
+  setText("home-goal", goal);
+  const goalBar = document.getElementById("home-goal-bar");
+  if (goalBar) goalBar.style.width = `${Math.min(100, (100 * today) / goal)}%`;
+
+  // 문구 안의 할 일 이름은 textContent로 넣는다 (사용자 입력이라 innerHTML 금지)
+  const guide = homeGuide(today, goal, session, agenda[0]);
+  const guideEl = pomodoroEl("home-guide");
+  if (guideEl) {
+    guideEl.innerHTML = guide.html;
+    const em = guideEl.querySelector("em");
+    if (em) em.textContent = guide.task || "";
+  }
+  const nextTitle = session ? session.task?.title : agenda[0]?.title;
+  pomodoroEl("resume-study").textContent = session
+    ? "이어서 하기 →"
+    : nextTitle ? `${nextTitle} 시작하기 →` : "집중 시작 →";
+
   const list = pomodoroEl("desk-tasks");
   list.replaceChildren();
-  for (const task of agenda.slice(0, 4)) {
+  for (const task of agenda.slice(0, 5)) {
     const row = document.createElement("button");
+    row.type = "button";
     row.className = "agenda-row";
     const title = document.createElement("strong");
     title.textContent = task.title;
     const progress = document.createElement("span");
     progress.textContent = taskProgress(task, store.logs);
     row.append(title, progress);
-    row.setAttribute("aria-label", task.title + " 집중 시작");
+    row.setAttribute("aria-label", `${task.title} 집중 시작`);
     row.onclick = () => startTaskFocus(task);
     list.append(row);
   }
-  if (!agenda.length) list.textContent = "오늘 예정된 할 일이 없습니다.";
-  const days = Array.from({length: 7}, (_, i) => {
+  if (!agenda.length) list.textContent = "오늘까지 할 일이 없어요. 여유로운 날이네요.";
+
+  const days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - 6 + i);
     const minutes = store.logs.reduce((sum, log) =>
       sum + (log.kind === "work" && todayYMD(new Date(log.at)) === todayYMD(d) ? log.minutes : 0), 0);
-    return { day: d.toLocaleDateString("ko-KR", {weekday: "short"}), minutes };
+    return { day: i === 6 ? "오늘" : d.toLocaleDateString("ko-KR", { weekday: "short" }), minutes };
   });
-  pomodoroEl("week-total").textContent = "총 " + days.reduce((sum, d) => sum + d.minutes, 0) + "분";
+  const total = days.reduce((sum, d) => sum + d.minutes, 0);
+  pomodoroEl("week-total").textContent = total
+    ? `${Math.floor(total / 60) ? Math.floor(total / 60) + "시간 " : ""}${total % 60}분`
+    : "아직 기록 없음";
   const bars = pomodoroEl("week-bars");
   bars.replaceChildren();
-  const max = Math.max(1, ...days.map(d => d.minutes));
+  const max = Math.max(1, ...days.map((d) => d.minutes));
   for (const d of days) {
     const col = document.createElement("div");
     const bar = document.createElement("i");
-    bar.style.height = Math.max(2, 48 * d.minutes / max) + "px";
-    col.append(d.minutes + "분", bar, d.day);
+    bar.style.height = Math.max(2, (124 * d.minutes) / max) + "px";
+    col.append(d.minutes ? d.minutes + "분" : "–", bar, d.day);
     bars.append(col);
   }
 }
 
+function reflectThisWeek() {
+  const since = new Date();
+  since.setDate(since.getDate() - 6);
+  const from = todayYMD(since);
+  return loadReflect().filter((e) => todayYMD(new Date(e.at)) >= from).length;
+}
+
 export function renderHomeStats() {
   renderDesk();
-  const streakEl = document.getElementById("home-stat-streak");
-  const focusEl = document.getElementById("home-stat-focus");
-  const reviewEl = document.getElementById("home-stat-review-due");
-  const reviewWrap = document.getElementById("home-stat-review-wrap");
-  const tasksEl = document.getElementById("home-stat-tasks");
-  const tasksWrap = document.getElementById("home-stat-tasks-wrap");
-  const tasksHint = document.getElementById("home-stat-tasks-hint");
-  const msEl = document.getElementById("home-stat-milestones");
-  const cardsEl = document.getElementById("home-stat-cards");
-
-  if (streakEl) streakEl.textContent = String(loadStreak().count);
-  if (focusEl) focusEl.textContent = String(todayWorkMinutes());
+  const store = loadFocusStore();
+  setText("home-stat-streak", loadStreak().count);
+  setText("home-stat-milestones", hubOptions.getMilestoneCount());
+  setText("home-stat-cards", loadCards().length);
+  setText("tile-reflect-num", reflectThisWeek());
+  setText("tile-focus-num", store.session ? Math.ceil(focusSecondsLeft / 60) : store.settings.work);
+  setText("tile-focus-sub", store.session ? "남은 시간 · 이어서 하기" : "한 번 집중하는 시간");
 
   const due = dueReviewCount();
-  if (reviewEl) reviewEl.textContent = String(due);
-  if (reviewWrap) reviewWrap.classList.toggle("stat--accent", due > 0);
+  setText("home-stat-review-due", due);
+  document.getElementById("home-stat-review-wrap")?.classList.toggle("stat--accent", due > 0);
 
   const { active, overdue } = hubOptions.getTaskSnapshot();
-  if (tasksEl) tasksEl.textContent = String(active);
-  if (tasksWrap) tasksWrap.classList.toggle("stat--accent", overdue > 0);
-  if (tasksHint) {
-    if (overdue > 0) {
-      tasksHint.hidden = false;
-      tasksHint.textContent = `기한 지남 ${overdue}건`;
-    } else {
-      tasksHint.hidden = true;
-      tasksHint.textContent = "";
-    }
+  setText("home-stat-tasks", active);
+  document.getElementById("home-stat-tasks-wrap")?.classList.toggle("stat--accent", overdue > 0);
+  const hint = document.getElementById("home-stat-tasks-hint");
+  if (hint) {
+    hint.hidden = overdue === 0;
+    hint.textContent = overdue ? `· 마감 지남 ${overdue}` : "";
   }
-
-  if (msEl) msEl.textContent = String(hubOptions.getMilestoneCount());
-  if (cardsEl) cardsEl.textContent = String(loadCards().length);
 }
 
 function renderHabitView() {
-  const streakEl = document.getElementById("habit-streak");
+  const s = loadStreak();
+  setText("habit-streak", s.count);
   const extraEl = document.getElementById("habit-extra");
-  if (streakEl) {
-    const s = loadStreak();
-    streakEl.textContent = String(s.count);
+  if (!extraEl) return;
+  const min = todayWorkMinutes();
+  const done = hubOptions.getMilestoneCount();
+  const lead = s.last === todayYMD()
+    ? "오늘도 체크됐어요."
+    : s.count ? "오늘은 아직이에요. 하나만 해도 이어져요." : "오늘부터 시작해 볼까요?";
+  extraEl.innerHTML = `${lead} 오늘 <strong>${min}분</strong> 집중했고, 지금까지 할 일을 <strong>${done}개</strong> 끝냈어요.`;
+  renderHeatmap();
+}
+
+/** 최근 26주 집중 분을 날짜별로 칠한다 (일요일 시작 열) */
+function renderHeatmap() {
+  const grid = document.getElementById("habit-heat");
+  if (!grid) return;
+  const perDay = new Map();
+  for (const log of loadFocusLogs()) {
+    if (log.kind && log.kind !== "work") continue;
+    const key = todayYMD(new Date(log.at));
+    perDay.set(key, (perDay.get(key) || 0) + log.minutes);
   }
-  if (extraEl) {
-    const min = todayWorkMinutes();
-    const ms = hubOptions.getMilestoneCount();
-    extraEl.innerHTML = `오늘 집중 합계: <strong>${min}분</strong> · 마일스톤 누적 완료: <strong>${ms}</strong>회`;
+  const start = new Date();
+  start.setDate(start.getDate() - 26 * 7 + 1);
+  start.setDate(start.getDate() - start.getDay());
+  grid.replaceChildren();
+  for (const d = new Date(start); d <= new Date(); d.setDate(d.getDate() + 1)) {
+    const m = perDay.get(todayYMD(d)) || 0;
+    const cell = document.createElement("i");
+    cell.dataset.lv = m === 0 ? "0" : m < 50 ? "1" : m < 100 ? "2" : "3";
+    cell.title = `${d.toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" })} · ${m ? m + "분" : "쉰 날"}`;
+    grid.append(cell);
   }
 }
 
@@ -1128,6 +1196,16 @@ export function initHub(options) {
     });
   }
 
+  const goalInput = document.getElementById("input-daily-goal");
+  if (goalInput instanceof HTMLInputElement) {
+    goalInput.value = String(dailyGoal());
+    goalInput.addEventListener("change", () => {
+      goalInput.value = String(clampInt(10, 900, goalInput.value));
+      localStorage.setItem(DAILY_GOAL_KEY, goalInput.value);
+      renderHomeStats();
+    });
+  }
+
   updateClock();
   setInterval(updateClock, 1000);
 
@@ -1204,7 +1282,7 @@ export function initHub(options) {
 
   document.getElementById("btn-habit-checkin")?.addEventListener("click", () => {
     recordStudyDay();
-    alert("오늘 학습을 인증했습니다. 연속 기록이 갱신되었습니다.");
+    alert("오늘 공부한 걸로 체크했어요.");
     renderHabitView();
   });
 
@@ -1230,6 +1308,12 @@ function initHubSettingsDock() {
     setOpen(panel.hidden);
   });
   closeBtn?.addEventListener("click", () => setOpen(false));
+  document.querySelectorAll("[data-open-settings]").forEach((btn) =>
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      setOpen(true);
+    }),
+  );
 
   document.addEventListener("click", (e) => {
     if (panel.hidden || !(e.target instanceof Node)) return;
