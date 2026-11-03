@@ -1,20 +1,46 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 280" role="img" aria-label="MY STUDY HUB">
-<title>MY STUDY HUB</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" role="img" aria-label="My Study Hub — plan, focus, review and reflect in one installable page">
+<title>My Study Hub</title>
 <style>
-.kick{font:700 15px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:3px;fill:#FDE047}
-.title{font:800 56px system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;letter-spacing:1.5px;fill:#ffffff}
-.tag{font:500 21px system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;fill:#ffffff;opacity:.86}
-.m{font:500 13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace} .mb{font:700 14px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace} .mbig{font:800 20px system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif} .big{font:800 30px system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif} .term{font:500 15px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-.bar{fill:#FDE047}
-
-@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+.kick{font:600 13px system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;letter-spacing:2.5px;fill:#0f7d56}
+.title{font:700 54px system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;letter-spacing:-1.5px;fill:#161816}
+.tag{font:400 20px system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;fill:#5d625e}
+.num{font:400 128px Georgia,'Times New Roman',serif;letter-spacing:-6px;fill:#0f7d56}
+.of{font:400 38px Georgia,'Times New Roman',serif;fill:#161816}
+.unit{font:600 16px system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;fill:#161816}
+.lab{font:500 13px system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;fill:#5d625e}
 </style>
-<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1D4ED8"/><stop offset="1" stop-color="#0EA5E9"/></linearGradient></defs>
-<rect width="1200" height="280" rx="20" fill="url(#g)"/>
-<rect class="bar" x="64" y="62" width="44" height="5" rx="2.5"/>
-<text x="64" y="100" class="kick">HTML · CSS · JAVASCRIPT · NO FRAMEWORK</text>
-<text x="64" y="158" class="title">MY STUDY HUB</text>
-<text x="64" y="196" class="tag">Plan, focus, review and reflect in one installable</text>
-<text x="64" y="224" class="tag">page</text>
-<g transform="translate(810,50)"><rect x="0" y="0" width="165" height="84" rx="12" fill="#ffffff" opacity=".12"/><rect x="0" y="0" width="8" height="84" rx="4" fill="#FDE047" /><text x="24" y="32" class="mbig" text-anchor="start" fill="#fff">Plan</text><rect x="24" y="46" width="90" height="6" rx="3" fill="#ffffff" opacity=".45"/><rect x="24" y="59" width="68" height="6" rx="3" fill="#ffffff" opacity=".45"/><rect x="175" y="0" width="165" height="84" rx="12" fill="#ffffff" opacity=".12"/><rect x="175" y="0" width="8" height="84" rx="4" fill="#FB7185" /><text x="199" y="32" class="mbig" text-anchor="start" fill="#fff">Focus</text><circle cx="303" cy="46" r="20" fill="none" stroke="#ffffff" stroke-opacity=".25" stroke-width="5"/><circle cx="303" cy="46" r="20" fill="none" stroke="#FDE047" stroke-width="5" stroke-dasharray="88 126" transform="rotate(-90 303 46)"/><rect x="0" y="94" width="165" height="84" rx="12" fill="#ffffff" opacity=".12"/><rect x="0" y="94" width="8" height="84" rx="4" fill="#34D399" /><text x="24" y="126" class="mbig" text-anchor="start" fill="#fff">Review</text><rect x="24" y="140" width="90" height="6" rx="3" fill="#ffffff" opacity=".45"/><rect x="24" y="153" width="68" height="6" rx="3" fill="#ffffff" opacity=".45"/><rect x="175" y="94" width="165" height="84" rx="12" fill="#ffffff" opacity=".12"/><rect x="175" y="94" width="8" height="84" rx="4" fill="#A78BFA" /><text x="199" y="126" class="mbig" text-anchor="start" fill="#fff">Reflect</text><rect x="199" y="140" width="90" height="6" rx="3" fill="#ffffff" opacity=".45"/><rect x="199" y="153" width="68" height="6" rx="3" fill="#ffffff" opacity=".45"/></g>
+<rect width="1200" height="300" fill="#f1f0ec"/>
+<text x="64" y="92" class="kick">HTML · CSS · JAVASCRIPT · NO BUILD STEP</text>
+<text x="64" y="154" class="title">My Study Hub</text>
+<text x="64" y="194" class="tag">Plan, focus, review and reflect in one installable page</text>
+<rect x="64" y="226" width="150" height="6" fill="#dfddd6"/>
+<rect x="64" y="226" width="94" height="6" fill="#0f7d56"/>
+<text x="226" y="234" class="lab">75 of 120 minutes today</text>
+
+<text x="742" y="152" class="num">75</text>
+<text x="868" y="150" class="of">/120</text>
+<text x="958" y="150" class="unit">min</text>
+
+<g transform="translate(742,182)">
+  <!-- 14주 × 7일 공부한 날 -->
+  <g>
+    <rect x="0" y="0" width="10" height="10" fill="#e4e2dc"/><rect x="0" y="13" width="10" height="10" fill="#a9c9b6"/><rect x="0" y="26" width="10" height="10" fill="#e4e2dc"/><rect x="0" y="39" width="10" height="10" fill="#76ad8d"/><rect x="0" y="52" width="10" height="10" fill="#e4e2dc"/><rect x="0" y="65" width="10" height="10" fill="#a9c9b6"/><rect x="0" y="78" width="10" height="10" fill="#e4e2dc"/>
+    <rect x="13" y="0" width="10" height="10" fill="#a9c9b6"/><rect x="13" y="13" width="10" height="10" fill="#e4e2dc"/><rect x="13" y="26" width="10" height="10" fill="#76ad8d"/><rect x="13" y="39" width="10" height="10" fill="#a9c9b6"/><rect x="13" y="52" width="10" height="10" fill="#e4e2dc"/><rect x="13" y="65" width="10" height="10" fill="#e4e2dc"/><rect x="13" y="78" width="10" height="10" fill="#a9c9b6"/>
+    <rect x="26" y="0" width="10" height="10" fill="#e4e2dc"/><rect x="26" y="13" width="10" height="10" fill="#76ad8d"/><rect x="26" y="26" width="10" height="10" fill="#a9c9b6"/><rect x="26" y="39" width="10" height="10" fill="#e4e2dc"/><rect x="26" y="52" width="10" height="10" fill="#76ad8d"/><rect x="26" y="65" width="10" height="10" fill="#a9c9b6"/><rect x="26" y="78" width="10" height="10" fill="#e4e2dc"/>
+    <rect x="39" y="0" width="10" height="10" fill="#a9c9b6"/><rect x="39" y="13" width="10" height="10" fill="#e4e2dc"/><rect x="39" y="26" width="10" height="10" fill="#e4e2dc"/><rect x="39" y="39" width="10" height="10" fill="#a9c9b6"/><rect x="39" y="52" width="10" height="10" fill="#76ad8d"/><rect x="39" y="65" width="10" height="10" fill="#e4e2dc"/><rect x="39" y="78" width="10" height="10" fill="#76ad8d"/>
+    <rect x="52" y="0" width="10" height="10" fill="#76ad8d"/><rect x="52" y="13" width="10" height="10" fill="#a9c9b6"/><rect x="52" y="26" width="10" height="10" fill="#76ad8d"/><rect x="52" y="39" width="10" height="10" fill="#e4e2dc"/><rect x="52" y="52" width="10" height="10" fill="#a9c9b6"/><rect x="52" y="65" width="10" height="10" fill="#76ad8d"/><rect x="52" y="78" width="10" height="10" fill="#e4e2dc"/>
+    <rect x="65" y="0" width="10" height="10" fill="#e4e2dc"/><rect x="65" y="13" width="10" height="10" fill="#76ad8d"/><rect x="65" y="26" width="10" height="10" fill="#3f9670"/><rect x="65" y="39" width="10" height="10" fill="#76ad8d"/><rect x="65" y="52" width="10" height="10" fill="#e4e2dc"/><rect x="65" y="65" width="10" height="10" fill="#a9c9b6"/><rect x="65" y="78" width="10" height="10" fill="#76ad8d"/>
+    <rect x="78" y="0" width="10" height="10" fill="#a9c9b6"/><rect x="78" y="13" width="10" height="10" fill="#e4e2dc"/><rect x="78" y="26" width="10" height="10" fill="#76ad8d"/><rect x="78" y="39" width="10" height="10" fill="#3f9670"/><rect x="78" y="52" width="10" height="10" fill="#76ad8d"/><rect x="78" y="65" width="10" height="10" fill="#e4e2dc"/><rect x="78" y="78" width="10" height="10" fill="#a9c9b6"/>
+    <rect x="91" y="0" width="10" height="10" fill="#76ad8d"/><rect x="91" y="13" width="10" height="10" fill="#3f9670"/><rect x="91" y="26" width="10" height="10" fill="#a9c9b6"/><rect x="91" y="39" width="10" height="10" fill="#76ad8d"/><rect x="91" y="52" width="10" height="10" fill="#3f9670"/><rect x="91" y="65" width="10" height="10" fill="#76ad8d"/><rect x="91" y="78" width="10" height="10" fill="#e4e2dc"/>
+    <rect x="104" y="0" width="10" height="10" fill="#e4e2dc"/><rect x="104" y="13" width="10" height="10" fill="#76ad8d"/><rect x="104" y="26" width="10" height="10" fill="#3f9670"/><rect x="104" y="39" width="10" height="10" fill="#0f7d56"/><rect x="104" y="52" width="10" height="10" fill="#76ad8d"/><rect x="104" y="65" width="10" height="10" fill="#3f9670"/><rect x="104" y="78" width="10" height="10" fill="#a9c9b6"/>
+    <rect x="117" y="0" width="10" height="10" fill="#3f9670"/><rect x="117" y="13" width="10" height="10" fill="#0f7d56"/><rect x="117" y="26" width="10" height="10" fill="#76ad8d"/><rect x="117" y="39" width="10" height="10" fill="#3f9670"/><rect x="117" y="52" width="10" height="10" fill="#0f7d56"/><rect x="117" y="65" width="10" height="10" fill="#3f9670"/><rect x="117" y="78" width="10" height="10" fill="#76ad8d"/>
+    <rect x="130" y="0" width="10" height="10" fill="#76ad8d"/><rect x="130" y="13" width="10" height="10" fill="#3f9670"/><rect x="130" y="26" width="10" height="10" fill="#0f7d56"/><rect x="130" y="39" width="10" height="10" fill="#3f9670"/><rect x="130" y="52" width="10" height="10" fill="#0f7d56"/><rect x="130" y="65" width="10" height="10" fill="#0f7d56"/><rect x="130" y="78" width="10" height="10" fill="#3f9670"/>
+    <rect x="143" y="0" width="10" height="10" fill="#0f7d56"/><rect x="143" y="13" width="10" height="10" fill="#3f9670"/><rect x="143" y="26" width="10" height="10" fill="#0f7d56"/><rect x="143" y="39" width="10" height="10" fill="#0f7d56"/><rect x="143" y="52" width="10" height="10" fill="#3f9670"/><rect x="143" y="65" width="10" height="10" fill="#0f7d56"/><rect x="143" y="78" width="10" height="10" fill="#0f7d56"/>
+    <rect x="156" y="0" width="10" height="10" fill="#3f9670"/><rect x="156" y="13" width="10" height="10" fill="#0f7d56"/><rect x="156" y="26" width="10" height="10" fill="#0f7d56"/><rect x="156" y="39" width="10" height="10" fill="#3f9670"/><rect x="156" y="52" width="10" height="10" fill="#0f7d56"/><rect x="156" y="65" width="10" height="10" fill="#0f7d56"/><rect x="156" y="78" width="10" height="10" fill="#3f9670"/>
+    <rect x="169" y="0" width="10" height="10" fill="#0f7d56"/><rect x="169" y="13" width="10" height="10" fill="#0f7d56"/><rect x="169" y="26" width="10" height="10" fill="#f1f0ec" stroke="#161816" stroke-width="1.5"/>
+  </g>
+  <text x="194" y="10" class="lab" dominant-baseline="hanging">Study days</text>
+  <text x="194" y="30" class="lab" dominant-baseline="hanging">one square per day,</text>
+  <text x="194" y="48" class="lab" dominant-baseline="hanging">darker = more done</text>
+</g>
 </svg>
