@@ -2,15 +2,15 @@
   "id": "/",
   "name": "My Study Hub — 학습 & 할 일",
   "short_name": "Study Hub",
-  "description": "학습·할 일·포모도로·회고를 한곳에서 관리합니다.",
+  "description": "할 일, 집중, 복습, 회고를 한곳에서 챙겨요.",
   "lang": "ko",
   "dir": "ltr",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "display_override": ["standalone", "browser"],
-  "background_color": "#f0f2f5",
-  "theme_color": "#2563eb",
+  "background_color": "#f1f0ec",
+  "theme_color": "#f1f0ec",
   "orientation": "any",
   "icons": [
     {

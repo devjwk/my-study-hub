@@ -96,13 +96,6 @@ function parseTags(s) {
     .filter(Boolean);
 }
 
-/** @param {Priority} p */
-function priorityLabel(p) {
-  if (p === "high") return "높음";
-  if (p === "low") return "낮음";
-  return "보통";
-}
-
 /** @param {string | null} dueIso */
 function dueInfo(dueIso) {
   if (!dueIso) return { text: "", overdue: false, today: false };
@@ -255,8 +248,8 @@ function updateConstellation(count, next) {
     wrap.setAttribute(
       "aria-label",
       next != null
-        ? `완료 마일스톤 별자리. 누적 ${count}개, 다음 목표 ${next}개.`
-        : `완료 마일스톤 별자리. 누적 ${count}개, 기준 마일스톤을 모두 채웠습니다.`,
+        ? `지금까지 ${count}개 끝냈어요. 다음 목표는 ${next}개예요.`
+        : `지금까지 ${count}개 끝냈어요. 목표를 모두 채웠어요.`,
     );
   }
 
@@ -304,8 +297,8 @@ function renderMilestoneTrack() {
   if (el.milestoneSummary) {
     el.milestoneSummary.textContent =
       count === 0
-        ? "완료 체크 시 누적되고, 같은 항목에서 완료를 해제하면 누적에서 1이 줄어듭니다. 아래 별자리에 진행이 표시됩니다."
-        : `지금까지 누적 완료 ${count}번입니다. 별·선은 그 진행을 따라갑니다. (완료 해제 시 1 감소)`;
+        ? "할 일을 끝내고 체크하면 여기 숫자가 올라가요. 할 일을 지워도 이 숫자는 남아요."
+        : "체크를 풀면 하나 줄어들어요. 할 일을 지워도 이 숫자는 남아요.";
   }
 
   const lastTarget = MILESTONES[MILESTONES.length - 1];
@@ -315,7 +308,7 @@ function renderMilestoneTrack() {
     if (el.milestoneNext) {
       el.milestoneNext.textContent =
         count >= lastTarget
-          ? `기준 마일스톤 ${lastTarget}개까지 모두 달성했습니다. 누적 ${count}개 — 별자리가 모두 빛난 상태입니다.`
+          ? `${lastTarget}개 목표까지 다 채웠어요. 대단해요.`
           : "";
     }
   } else {
@@ -323,8 +316,8 @@ function renderMilestoneTrack() {
     if (el.milestoneNext) {
       el.milestoneNext.textContent =
         remain > 0
-          ? `다음 마일스톤: ${next}개 달성까지 ${remain}번만 더 완료하면 됩니다.`
-          : `다음 마일스톤: ${next}개 달성 직전입니다.`;
+          ? `${remain}개만 더 끝내면 ${next}개 목표예요.`
+          : `곧 ${next}개 목표예요.`;
     }
   }
 
@@ -351,7 +344,7 @@ function renderMilestoneTrack() {
     li.appendChild(label);
     li.setAttribute(
       "aria-label",
-      count >= m ? `${m}개 마일스톤 달성됨` : m === next ? `현재 목표 ${m}개 마일스톤` : `${m}개 마일스톤`,
+      count >= m ? `${m}개 채움` : m === next ? `다음 목표 ${m}개` : `${m}개 목표`,
     );
 
     el.milestoneSteps.appendChild(li);
@@ -378,7 +371,7 @@ function render() {
     cb.type = "checkbox";
     cb.className = "task__check";
     cb.checked = task.done;
-    cb.setAttribute("aria-label", task.done ? "완료 취소" : "완료로 표시");
+    cb.setAttribute("aria-label", task.done ? "끝냄 취소" : "끝냄으로 표시");
     cb.addEventListener("change", () => {
       const wasDone = task.done;
       task.done = cb.checked;
@@ -402,13 +395,15 @@ function render() {
 
     const meta = document.createElement("div");
     meta.className = "task__meta";
-    const pr = document.createElement("span");
-    pr.className = `badge badge--${task.priority}`;
-    pr.textContent = priorityLabel(task.priority);
-    meta.appendChild(pr);
+    if (task.priority !== "medium") {
+      const pr = document.createElement("span");
+      pr.className = `badge badge--${task.priority}`;
+      pr.textContent = task.priority === "high" ? "중요해요" : "급하지 않아요";
+      meta.appendChild(pr);
+    }
     if (info.text) {
       const dueEl = document.createElement("span");
-      dueEl.textContent = `마감 ${info.text}`;
+      dueEl.textContent = info.overdue && !task.done ? `${info.text}까지였어요` : `${info.text}까지`;
       if (info.overdue && !task.done) dueEl.classList.add("task__due--overdue");
       meta.appendChild(dueEl);
     }
@@ -427,14 +422,14 @@ function render() {
     const btnEdit = document.createElement("button");
     btnEdit.type = "button";
     btnEdit.className = "btn btn--ghost";
-    btnEdit.textContent = "편집";
+    btnEdit.textContent = "고치기";
     btnEdit.addEventListener("click", () => openEdit(task));
     const btnDel = document.createElement("button");
     btnDel.type = "button";
     btnDel.className = "btn btn--ghost";
-    btnDel.textContent = "삭제";
+    btnDel.textContent = "지우기";
     btnDel.addEventListener("click", () => {
-      if (confirm("이 항목을 삭제할까요?")) {
+      if (confirm(`"${task.title}"을(를) 지울까요?`)) {
         tasks = tasks.filter((x) => x.id !== task.id);
         saveTasks(tasks);
         render();
@@ -446,7 +441,7 @@ function render() {
     if (!task.done) {
       const focus = document.createElement("button");
       focus.className = "btn btn--secondary";
-      focus.textContent = "집중 시작";
+      focus.textContent = "집중";
       focus.onclick = () => startTaskFocus(task);
       actions.append(focus);
     }
@@ -540,7 +535,7 @@ document.querySelectorAll("[data-filter]").forEach((btn) => {
 
 el.btnClearDone.addEventListener("click", () => {
   if (!tasks.some((t) => t.done)) return;
-  if (!confirm("완료된 항목을 모두 삭제할까요?")) return;
+  if (!confirm("끝낸 일을 전부 지울까요?")) return;
   tasks = tasks.filter((t) => !t.done);
   saveTasks(tasks);
   render();
@@ -602,7 +597,7 @@ el.inputImport.addEventListener("change", async () => {
     if (data && typeof data === "object" && data.version === 2 && data.slots && typeof data.slots === "object") {
       if (
         !confirm(
-          "백업 파일의 전체 데이터(이름·배경·테마·할 일·학습 탭 등)로 이 브라우저 저장소를 덮어씁니다. 계속할까요?",
+          "백업 파일 내용으로 지금 기록을 전부 바꿀까요?\n이 브라우저에 있던 기록은 사라져요.",
         )
       ) {
         return;
@@ -621,14 +616,14 @@ el.inputImport.addEventListener("change", async () => {
     if (!Array.isArray(arr)) throw new Error("형식 오류");
     const merged = arr.map(normalizeTask).filter(Boolean);
     if (!merged.length) {
-      alert("가져올 유효한 항목이 없습니다.");
+      alert("이 파일에는 불러올 할 일이 없어요.");
       return;
     }
     let importedLifetime = 0;
     if (!Array.isArray(data) && typeof data.lifetimeCompleted === "number" && data.lifetimeCompleted >= 0) {
       importedLifetime = Math.floor(data.lifetimeCompleted);
     }
-    if (!confirm(`${merged.length}개 항목을 가져옵니다. 기존 목록과 합칠까요? (취소 시 덮어쓰기)`)) {
+    if (!confirm(`할 일 ${merged.length}개를 찾았어요. 지금 목록에 합칠까요?\n(취소를 누르면 지금 목록을 지우고 이걸로 바꿔요)`)) {
       tasks = merged;
       lifetimeCompleted = importedLifetime;
       saveProgress();
@@ -646,7 +641,7 @@ el.inputImport.addEventListener("change", async () => {
     saveTasks(tasks);
     render();
   } catch {
-    alert("파일을 읽을 수 없습니다. JSON 백업 파일인지 확인해 주세요.");
+    alert("파일을 읽지 못했어요. 이 앱에서 받은 백업 파일(.json)이 맞는지 확인해 주세요.");
   }
 });
 
@@ -654,7 +649,7 @@ el.btnMilestoneReset?.addEventListener("click", () => {
   if (lifetimeCompleted === 0) return;
   if (
     !confirm(
-      "완료 마일스톤 누적을 0으로 초기화할까요?\n\n할 일 목록의 완료 체크는 그대로이며, 위쪽 숫자·막대·단계만 처음 상태로 돌아갑니다.",
+      "끝낸 일 숫자를 0으로 돌릴까요?\n할 일 목록의 체크는 그대로 남아요.",
     )
   ) {
     return;
