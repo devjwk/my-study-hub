@@ -1,12 +1,12 @@
 {
-  "id": "/",
+  "id": "./",
   "name": "My Study Hub — 학습 & 할 일",
   "short_name": "Study Hub",
   "description": "할 일, 집중, 복습, 회고를 한곳에서 챙겨요.",
   "lang": "ko",
   "dir": "ltr",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "display_override": ["standalone", "browser"],
   "background_color": "#f1f0ec",
@@ -14,13 +14,13 @@
   "orientation": "any",
   "icons": [
     {
-      "src": "/icons/icon-192.png",
+      "src": "icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
