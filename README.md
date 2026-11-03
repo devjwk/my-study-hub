@@ -9,6 +9,8 @@
 
 Personal project · March 2026
 
+**[Open the app →](https://devjwk.github.io/my-study-hub/)**
+
 [Why](#why) · [What it does](#what-it-does) · [Design](#design) · [My role](#my-role) · [Limitations](#limitations-and-next-steps)
 
 </div>
