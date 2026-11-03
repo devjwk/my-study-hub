@@ -57,6 +57,19 @@ export function applyBackgroundTint() {
   root.style.setProperty("--bg-tint-mix-strong", `${strong.toFixed(1)}%`);
   root.style.setProperty("--bg-tint-mix-soft", `${soft.toFixed(1)}%`);
   root.style.setProperty("--bg-tint-mix-corner", `${corner.toFixed(1)}%`);
+  syncTintSwatches(hex, strengthPct);
+}
+
+/** 설정의 색 버튼 중 지금 적용된 것을 눌린 상태로 */
+function syncTintSwatches(hex, strength) {
+  const none = strength === 0;
+  let matched = none;
+  document.querySelectorAll("[data-tint]").forEach((sw) => {
+    const on = none ? sw.dataset.tint === "" : (sw.dataset.tint || "").toLowerCase() === hex.toLowerCase();
+    if (on) matched = true;
+    sw.setAttribute("aria-pressed", String(on));
+  });
+  document.querySelector(".swatch--custom")?.setAttribute("aria-pressed", String(!matched));
 }
 
 /** @typedef {{ id: string, title: string, nextReview: string }} ReviewItem */
@@ -1294,6 +1307,28 @@ export function initHub(options) {
   });
   tintAlpha?.addEventListener("input", () => {
     if (tintAlpha instanceof HTMLInputElement) localStorage.setItem(BG_TINT_ALPHA_KEY, tintAlpha.value);
+    applyBackgroundTint();
+  });
+
+  /** 미리 고른 색: 누르면 바로 적용, 진하기가 0이면 보이게 기본 진하기로 올린다 */
+  document.querySelectorAll("[data-tint]").forEach((sw) =>
+    sw.addEventListener("click", () => {
+      if (!(tintColor instanceof HTMLInputElement) || !(tintAlpha instanceof HTMLInputElement)) return;
+      const hex = sw.dataset.tint || "";
+      if (hex) {
+        tintColor.value = hex;
+        if (tintAlpha.value === "0") tintAlpha.value = "22";
+      } else tintAlpha.value = "0";
+      localStorage.setItem(BG_TINT_HEX_KEY, tintColor.value);
+      localStorage.setItem(BG_TINT_ALPHA_KEY, tintAlpha.value);
+      applyBackgroundTint();
+    }),
+  );
+  tintColor?.addEventListener("input", () => {
+    if (tintAlpha instanceof HTMLInputElement && tintAlpha.value === "0") {
+      tintAlpha.value = "22";
+      localStorage.setItem(BG_TINT_ALPHA_KEY, "22");
+    }
     applyBackgroundTint();
   });
 

@@ -2,9 +2,11 @@
    색은 중립 + 녹색 하나(진행·행동) + 붉은색 하나(경고). 모서리는 모두 직각. */
 
 :root {
-  --bg: #f1f0ec;
-  --surface: #e8e6e0;
-  --surface-2: #dfddd6;
+  /* --base(테마 기본색)에 설정에서 고른 색을 섞은 게 --bg, 면 색은 --bg에서 계산 */
+  --base: #f1f0ec;
+  --bg: color-mix(in srgb, var(--base), rgb(var(--bg-tint-r) var(--bg-tint-g) var(--bg-tint-b)) var(--bg-tint-mix));
+  --surface: color-mix(in srgb, var(--bg), var(--ink) 5%);
+  --surface-2: color-mix(in srgb, var(--bg), var(--ink) 9%);
   --ink: #161816;
   --sub: #5d625e;
   --hair: #d6d4cd;
@@ -17,14 +19,12 @@
   --bg-tint-r: 15;
   --bg-tint-g: 125;
   --bg-tint-b: 86;
-  --bg-tint-mix-soft: 0%;
+  --bg-tint-mix: 0%;
   color-scheme: light;
 }
 
 [data-theme="dark"] {
-  --bg: #141615;
-  --surface: #1d201e;
-  --surface-2: #262a27;
+  --base: #141615;
   --ink: #ecebe6;
   --sub: #a3a8a4;
   --hair: #2c302d;
@@ -42,7 +42,8 @@ html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
   min-height: 100svh;
-  background: color-mix(in srgb, var(--bg), rgb(var(--bg-tint-r) var(--bg-tint-g) var(--bg-tint-b)) var(--bg-tint-mix-soft));
+  background: var(--bg);
+  transition: background-color .25s;
   color: var(--ink);
   font: 16px/1.6 var(--sans);
   word-break: keep-all;
@@ -128,9 +129,15 @@ body:not(:has(#view-home.view--active)) .hub-bar__date { visibility: hidden; }
 .hub-settings__head h2 { font-size: 20px; font-weight: 600; }
 .hub-settings__section { display: grid; gap: .8rem; }
 .hub-settings__section h3 { font-size: 15px; font-weight: 600; }
-.tint { display: flex; gap: .8rem; align-items: center; }
-.tint input[type="color"] { width: 44px; height: 36px; border: 0; padding: 0; background: none; cursor: pointer; }
-.tint input[type="range"] { flex: 1; accent-color: var(--green); }
+.swatches { display: flex; flex-wrap: wrap; gap: 6px; }
+.swatch { width: 36px; height: 36px; border: 0; padding: 0; cursor: pointer; background: var(--sw); box-shadow: inset 0 0 0 1px rgb(0 0 0 / .08); }
+.swatch--none { background: var(--base); position: relative; }
+.swatch--none::after { content: ""; position: absolute; inset: 50% 6px auto; height: 1.5px; background: var(--sub); transform: rotate(-45deg); }
+.swatch[aria-pressed="true"] { outline: 2px solid var(--ink); outline-offset: 2px; }
+.swatch--custom { position: relative; overflow: hidden; background: conic-gradient(#e8a87c, #d6c08f, #7fa98c, #7aa7d6, #a99bd6, #d98c9a, #e8a87c); }
+.swatch--custom input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.tint-strength { display: flex; align-items: center; gap: .8rem; font-size: 14px; color: var(--sub); }
+.tint-strength input { flex: 1; accent-color: var(--green); }
 .row { display: flex; flex-wrap: wrap; gap: 6px; }
 .hint { font-size: 14px; color: var(--sub); }
 

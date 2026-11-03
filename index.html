@@ -65,10 +65,21 @@
 
             <section class="hub-settings__section">
               <h3>배경 색</h3>
-              <div class="tint">
-                <input type="color" id="input-bg-tint-color" value="#0f7d56" aria-label="섞을 색" />
-                <input type="range" id="input-bg-tint-alpha" min="0" max="40" value="0" aria-label="색을 얼마나 섞을지" />
+              <div class="swatches" role="group" aria-label="배경 색 고르기">
+                <button type="button" class="swatch swatch--none" data-tint="" aria-label="기본" title="기본"></button>
+                <button type="button" class="swatch" data-tint="#7fa98c" style="--sw:#7fa98c" aria-label="세이지" title="세이지"></button>
+                <button type="button" class="swatch" data-tint="#7aa7d6" style="--sw:#7aa7d6" aria-label="하늘" title="하늘"></button>
+                <button type="button" class="swatch" data-tint="#a99bd6" style="--sw:#a99bd6" aria-label="라벤더" title="라벤더"></button>
+                <button type="button" class="swatch" data-tint="#e8a87c" style="--sw:#e8a87c" aria-label="살구" title="살구"></button>
+                <button type="button" class="swatch" data-tint="#d6c08f" style="--sw:#d6c08f" aria-label="모래" title="모래"></button>
+                <button type="button" class="swatch" data-tint="#d98c9a" style="--sw:#d98c9a" aria-label="장미" title="장미"></button>
+                <label class="swatch swatch--custom" title="직접 고르기">
+                  <input type="color" id="input-bg-tint-color" value="#0f7d56" aria-label="직접 고르기" />
+                </label>
               </div>
+              <label class="tint-strength">진하기
+                <input type="range" id="input-bg-tint-alpha" min="0" max="40" value="0" aria-label="배경 색 진하기" />
+              </label>
             </section>
 
             <section class="hub-settings__section">
