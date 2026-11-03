@@ -51,12 +51,20 @@
             </label>
           </div>
 
-          <div class="home-center">
-            <div class="home-clock-card">
-              <span class="home-clock-card__eyebrow">현재 시간</span>
-              <p class="home-clock" id="home-clock">--:--:--</p>
-              <p class="home-date" id="home-date">—</p>
-            </div>
+          <section class="study-hero" aria-labelledby="resume-title">
+            <div class="hero-date"><span>STUDY DESK &nbsp; / &nbsp; 01</span><span id="home-date"></span></div>
+            <p id="home-clock" class="desk-clock"></p>
+            <h1 id="resume-title">오늘의 집중 공간</h1>
+            <p id="resume-summary"></p>
+            <button id="resume-study" class="btn btn--primary">집중 시작</button>
+          </section>
+          <div class="desk-grid">
+            <section class="desk-panel"><small>AGENDA</small><h2>오늘 할 일</h2>
+              <div id="desk-tasks"></div><button class="btn btn--ghost" data-hub-view="organize">할 일 관리 →</button>
+            </section>
+            <section class="desk-panel"><small>FOCUS LOG</small><h2>최근 7일 집중</h2>
+              <p id="week-total"></p><div id="week-bars"></div>
+            </section>
           </div>
 
           <section class="home-stats" aria-label="나의 요약 지표">
@@ -186,6 +194,9 @@
           </div>
 
           <div class="pomodoro focus-card" id="pomodoro-root">
+            <div class="room-tools"><label>공간 <select id="room-choice"><option value="library">비 오는 도서관</option><option value="studio">심야 작업실</option></select></label><button id="room-toggle" type="button" class="btn btn--ghost">몰입 보기</button></div>
+            <h3 id="room-task">자유 집중</h3>
+            <button id="unlink-task" class="btn btn--ghost" hidden>자유 집중으로 전환</button>
             <div class="pomodoro__meta">
               <span class="pomodoro__phase" id="pomo-phase-label">집중</span>
               <span class="pomodoro__round" id="pomo-round-label" aria-live="polite">다음 긴 휴식까지 · 1/4</span>
@@ -426,6 +437,7 @@
                 <button type="submit" class="btn btn--primary">추가</button>
               </div>
               <div class="composer__meta">
+<label class="field"><span class="field__label">목표 세션</span><input class="input" id="input-goal" type="number" min="1" max="99" value="1" required></label>
                 <label class="field">
                   <span class="field__label">우선순위</span>
                   <select id="select-priority" class="input" aria-label="우선순위">
@@ -663,7 +675,8 @@
     <dialog class="modal" id="modal-edit" aria-labelledby="modal-edit-title">
       <form method="dialog" class="modal__inner" id="form-edit">
         <h2 id="modal-edit-title" class="modal__title">할 일 수정</h2>
-        <input type="hidden" id="edit-id" />
+        <label class="field"><span class="field__label">목표 세션</span><input class="input" id="edit-goal" type="number" min="1" max="99" value="1" required></label>
+<input type="hidden" id="edit-id" />
         <label class="field">
           <span class="field__label">제목</span>
           <input type="text" id="edit-title" class="input" required maxlength="500" />

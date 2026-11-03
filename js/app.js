@@ -1,5 +1,7 @@
 import {
   initHub,
+  startTaskFocus,
+  taskProgress,
   showView,
   recordStudyDay,
   applyBackgroundTint,
@@ -57,7 +59,8 @@ function normalizeTask(t) {
     typeof o.createdAt === "number" && Number.isFinite(o.createdAt)
       ? o.createdAt
       : Date.now();
-  return { id, title, done, priority, due, tags, createdAt };
+  const goal = Math.min(99, Math.max(1, Math.floor(Number(o.goal)) || 1));
+  return { id, title, done, priority, due, tags, createdAt, goal };
 }
 
 /** @param {Task[]} tasks */
@@ -437,6 +440,16 @@ function render() {
         render();
       }
     });
+    const progress = document.createElement("span");
+    progress.textContent = taskProgress(task);
+    meta.append(progress);
+    if (!task.done) {
+      const focus = document.createElement("button");
+      focus.className = "btn btn--secondary";
+      focus.textContent = "집중 시작";
+      focus.onclick = () => startTaskFocus(task);
+      actions.append(focus);
+    }
     actions.appendChild(btnEdit);
     actions.appendChild(btnDel);
 
@@ -449,6 +462,7 @@ function render() {
 
 /** @param {Task} task */
 function openEdit(task) {
+  document.getElementById("edit-goal").value = task.goal;
   el.editId.value = task.id;
   el.editTitle.value = task.title;
   el.editPriority.value = task.priority;
@@ -489,6 +503,7 @@ el.formAdd.addEventListener("submit", (e) => {
   if (!title) return;
   const task = {
     id: uid(),
+    goal: Number(document.getElementById("input-goal").value),
     title,
     done: false,
     priority: /** @type {Priority} */ (el.selectPriority.value),
@@ -536,6 +551,7 @@ el.formEdit.addEventListener("submit", (e) => {
   const id = el.editId.value;
   const task = tasks.find((t) => t.id === id);
   if (!task) return;
+  task.goal = Number(document.getElementById("edit-goal").value);
   task.title = el.editTitle.value.trim();
   task.priority = /** @type {Priority} */ (el.editPriority.value);
   task.due = fromDatetimeLocal(el.editDue.value);
@@ -651,6 +667,7 @@ el.btnMilestoneReset?.addEventListener("click", () => {
 applyTheme();
 initHub({
   onShowOrganize: () => render(),
+  getTasks: () => tasks,
   getMilestoneCount: () => lifetimeCompleted,
   getTaskSnapshot: () => {
     const now = Date.now();

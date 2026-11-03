@@ -25,6 +25,8 @@ Personal project · March 2026
 | Team | Individual |
 | Stack | HTML, CSS, JavaScript (no framework), Service Worker, localStorage, Netlify |
 
+On the home dashboard, choose an unfinished task or resume the current session. Set a session goal when creating or editing a task. Completed focus rounds update task progress and the seven-day chart. Both illustrated rooms are available offline after the first successful cache install.
+
 ## Why
 
 My study day was spread across a to-do app, a pomodoro timer, a flashcard app and a notes file. Switching between them cost attention, and none of them knew about the others. My Study Hub puts the whole loop in one place.
@@ -38,7 +40,7 @@ My study day was spread across a to-do app, a pomodoro timer, a flashcard app an
 | Area | Features |
 | :--- | :--- |
 | **Tasks** | Priority, tags, due date and time, search, sort, filter, edit |
-| **Focus** | Pomodoro with adjustable focus length and timer modes |
+| **Focus** | Illustrated library and night studio, task-linked sessions, adjustable timers and resume after reload |
 | **Study cards · Review** | Flashcards and review |
 | **Motivation · Habits** | Habit tracking and completion milestones |
 | **Feedback · Retrospective** | Retrospective notes |

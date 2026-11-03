@@ -84,8 +84,7 @@ function pad2(n) {
   return String(n).padStart(2, "0");
 }
 
-export function todayYMD() {
-  const d = new Date();
+export function todayYMD(d = new Date()) {
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 }
 
@@ -163,7 +162,7 @@ function normalizeFocusLog(x) {
   const at = typeof o.at === "string" ? o.at : new Date().toISOString();
   const minutes = Math.max(0, Math.floor(Number(o.minutes) || 0));
   const kind = o.kind === "short" || o.kind === "long" ? o.kind : "work";
-  return { at, minutes, kind };
+  return { at, minutes, kind, taskId: o.taskId, taskTitle: o.taskTitle, sessionId: o.sessionId };
 }
 
 function loadFocusStore() {
@@ -184,7 +183,7 @@ function loadFocusStore() {
       autoStart: Boolean(d.prefs?.autoStart),
       sound: d.prefs?.sound !== false,
     };
-    return { logs, settings, prefs };
+    return { logs, settings, prefs, session: d.session, scene: d.scene === "studio" ? "studio" : "library" };
   } catch {
     return createDefaultFocusStore();
   }
@@ -196,14 +195,6 @@ function saveFocusStore(store) {
 
 function loadFocusLogs() {
   return loadFocusStore().logs;
-}
-
-/** @param {{ at: string, minutes: number, kind: string }} entry */
-function appendFocusLog(entry) {
-  const store = loadFocusStore();
-  store.logs.push(entry);
-  if (store.logs.length > 200) store.logs = store.logs.slice(-200);
-  saveFocusStore(store);
 }
 
 function loadReflect() {
@@ -313,6 +304,70 @@ let pomoCompletedWorkInSet = 0;
 /** @type {ReturnType<typeof setTimeout> | null} */
 let pomoToastTimerId = null;
 
+let sessionId = uid();
+let deadline = 0;
+let focusTask = null;
+
+function snapshot() {
+  return { id: sessionId, phase: pomoPhase, total: focusChunkTotalSeconds, left: focusSecondsLeft,
+    deadline, rounds: pomoCompletedWorkInSet, task: focusTask };
+}
+
+function saveSession() {
+  const store = loadFocusStore();
+  store.session = snapshot();
+  saveFocusStore(store);
+}
+
+function restoreSession() {
+  const store = loadFocusStore();
+  const state = store.session;
+  stopFocusTimer();
+  const valid = state && ["work", "short", "long"].includes(state.phase) &&
+    Number.isFinite(state.total) && state.total > 0 && Number.isFinite(state.left);
+  sessionId = valid ? state.id : uid();
+  pomoPhase = valid ? state.phase : "work";
+  focusChunkTotalSeconds = valid ? state.total : durationForPhase("work");
+  focusSecondsLeft = valid ? state.left : focusChunkTotalSeconds;
+  deadline = valid && Number.isFinite(state.deadline) ? state.deadline : 0;
+  focusTask = valid ? state.task : null;
+  pomoCompletedWorkInSet = valid ? state.rounds || 0 : 0;
+  document.body.dataset.room = store.scene || "library";
+  pomodoroEl("room-choice").value = document.body.dataset.room;
+  if (deadline) {
+    focusTimerId = setInterval(tick, 500);
+    tick();
+  }
+  setFocusDisplayTime(focusSecondsLeft);
+  syncPomodoroChrome();
+}
+
+function setRoom(open) {
+  pomodoroEl("view-focus").classList.toggle("immersed", open);
+  pomodoroEl("room-toggle").textContent = open ? "기본 보기" : "몰입 보기";
+  pomodoroEl("room-toggle").setAttribute("aria-pressed", String(open));
+}
+
+export function startTaskFocus(task) {
+  const changing = focusTask?.id !== task?.id;
+  if (changing && (deadline || focusSecondsLeft < focusChunkTotalSeconds) &&
+      !confirm("진행 중인 단계를 종료하고 다른 할 일로 집중할까요?")) return;
+  showView("focus");
+  if (changing) {
+    stopFocusTimer();
+    deadline = 0;
+    focusTask = task ? { id: task.id, title: task.title } : null;
+    applyPhase("work");
+  }
+  if (!focusTimerId) startPomodoroTick();
+  setRoom(true);
+}
+
+export function taskProgress(task, logs = loadFocusLogs()) {
+  const entries = logs.filter(log => log.kind === "work" && log.taskId === task.id);
+  return `${entries.length}/${task.goal}세션 · 누적 ${entries.reduce((sum, log) => sum + log.minutes, 0)}분`;
+}
+
 function pomodoroEl(id) {
   return document.getElementById(id);
 }
@@ -385,6 +440,8 @@ function playPomodoroBeep() {
 }
 
 function syncPomodoroChrome() {
+  pomodoroEl("room-task").textContent = focusTask?.title || "자유 집중";
+  pomodoroEl("unlink-task").hidden = !focusTask;
   const phaseEl = pomodoroEl("pomo-phase-label");
   const roundEl = pomodoroEl("pomo-round-label");
   const hintEl = pomodoroEl("pomo-hint");
@@ -440,10 +497,13 @@ function syncPomodoroChrome() {
   if (pauseBtn) pauseBtn.hidden = focusTimerId === null;
 }
 
-function applyPhase(phase) {
+function applyPhase(phase, persist = true) {
+  deadline = 0;
+  sessionId = uid();
   pomoPhase = phase;
   focusChunkTotalSeconds = durationForPhase(phase);
   focusSecondsLeft = focusChunkTotalSeconds;
+  if (persist) saveSession();
   setFocusDisplayTime(focusSecondsLeft);
   syncPomodoroChrome();
 }
@@ -454,60 +514,67 @@ function scheduleAutoStartNext() {
     syncPomodoroChrome();
     return;
   }
+  const nextId = sessionId;
   setTimeout(() => {
+    if (sessionId !== nextId) return;
     const view = pomodoroEl("view-focus");
     if (view?.classList.contains("view--active") && focusTimerId === null) startPomodoroTick();
   }, 1000);
 }
 
 function startPomodoroTick() {
-  stopFocusTimer();
-  if (focusSecondsLeft <= 0) focusSecondsLeft = focusChunkTotalSeconds;
+  if (focusTimerId) return;
+  deadline = Date.now() + focusSecondsLeft * 1000;
+  saveSession();
+  focusTimerId = setInterval(tick, 500);
+  if (pomodoroEl("view-focus").classList.contains("view--active")) setRoom(true);
   syncPomodoroChrome();
+}
 
-  focusTimerId = setInterval(() => {
-    focusSecondsLeft -= 1;
-    setFocusDisplayTime(focusSecondsLeft);
-    syncPomodoroChrome();
-
-    if (focusSecondsLeft > 0) return;
-
-    stopFocusTimer();
+function tick() {
+  focusSecondsLeft = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+  setFocusDisplayTime(focusSecondsLeft);
+  syncPomodoroChrome();
+  if (focusSecondsLeft > 0) return;
+  stopFocusTimer();
+  const endedId = sessionId;
+  const finish = () => {
     const store = loadFocusStore();
-    const chunkMin = Math.max(1, Math.round(focusChunkTotalSeconds / ONE_MINUTE));
-
-    if (pomoPhase === "work") {
-      appendFocusLog({ at: new Date().toISOString(), minutes: chunkMin, kind: "work" });
-      renderFocusLog();
-      renderHabitView();
-      if (document.getElementById("view-home")?.classList.contains("view--active")) renderHomeStats();
-      recordStudyDay();
-      pomoToast("집중 완료. 휴식으로 이동합니다.", "good");
-      playPomodoroBeep();
-      pomoCompletedWorkInSet += 1;
-      const nextLong = pomoCompletedWorkInSet % store.settings.interval === 0;
-      applyPhase(nextLong ? "long" : "short");
-      scheduleAutoStartNext();
+    if (store.session?.id !== endedId || !store.session.deadline || store.session.deadline > Date.now()) {
+      restoreSession();
       return;
     }
-
-    appendFocusLog({
-      at: new Date().toISOString(),
-      minutes: chunkMin,
-      kind: pomoPhase === "short" ? "short" : "long",
-    });
-    renderFocusLog();
-    playPomodoroBeep();
-    pomoToast(pomoPhase === "short" ? "짧은 휴식 끝." : "긴 휴식 끝.", "good");
-
+    const work = pomoPhase === "work";
+    const at = new Date(store.session.deadline).toISOString();
+    store.logs.push({ at, minutes: Math.round(focusChunkTotalSeconds / ONE_MINUTE),
+      kind: pomoPhase, sessionId: endedId, taskId: work ? focusTask?.id : null,
+      taskTitle: work ? focusTask?.title : null });
+    if (work) pomoCompletedWorkInSet++;
     if (pomoPhase === "long") pomoCompletedWorkInSet = 0;
-    applyPhase("work");
+    const next = !work ? "work" : pomoCompletedWorkInSet % store.settings.interval === 0 ? "long" : "short";
+    applyPhase(next, false);
+    store.session = snapshot();
+    saveFocusStore(store);
+    if (work) recordStudyDay();
+    renderFocusLog();
+    renderHabitView();
+    renderHomeStats();
+    if (pomodoroEl("view-organize").classList.contains("view--active")) hubOptions.onShowOrganize();
+    playPomodoroBeep();
+    pomoToast(work ? "집중 완료. 휴식으로 이동합니다." : "휴식 끝. 집중할 시간입니다.", "good");
     scheduleAutoStartNext();
-  }, 1000);
+  };
+  if (navigator.locks) navigator.locks.request("study-hub-focus-completion", finish);
+  else finish();
 }
 
 function pausePomodoro() {
+  if (deadline <= Date.now()) { tick(); return; }
+  focusSecondsLeft = Math.ceil((deadline - Date.now()) / 1000);
+  deadline = 0;
   stopFocusTimer();
+  saveSession();
+  setFocusDisplayTime(focusSecondsLeft);
   syncPomodoroChrome();
 }
 
@@ -529,10 +596,7 @@ function skipPomodoroPhase() {
 
 function resetPomodoroPhase() {
   stopFocusTimer();
-  focusChunkTotalSeconds = durationForPhase(pomoPhase);
-  focusSecondsLeft = focusChunkTotalSeconds;
-  setFocusDisplayTime(focusSecondsLeft);
-  syncPomodoroChrome();
+  applyPhase(pomoPhase);
 }
 
 function togglePomodoroRun() {
@@ -567,11 +631,7 @@ function persistPomodoroSettingsFromInputs() {
   store.settings.longBreak = lo instanceof HTMLInputElement ? clampInt(1, 60, lo.value) : store.settings.longBreak;
   store.settings.interval = iv instanceof HTMLInputElement ? clampInt(1, 12, iv.value) : store.settings.interval;
   saveFocusStore(store);
-  if (!focusTimerId) {
-    focusChunkTotalSeconds = durationForPhase(pomoPhase);
-    focusSecondsLeft = focusChunkTotalSeconds;
-    setFocusDisplayTime(focusSecondsLeft);
-  }
+  if (!focusTimerId && focusSecondsLeft === focusChunkTotalSeconds) applyPhase(pomoPhase);
   syncPomodoroChrome();
 }
 
@@ -586,14 +646,9 @@ function persistPomodoroPrefsFromInputs() {
 
 /** localStorage 포모도로 저장값을 반영해 타이머·폼을 집중 기본값으로 맞춤 */
 function hardResetPomodoroFromDisk() {
-  stopFocusTimer();
-  pomoPhase = "work";
-  pomoCompletedWorkInSet = 0;
   hydratePomodoroForm();
-  focusChunkTotalSeconds = durationForPhase("work");
-  focusSecondsLeft = focusChunkTotalSeconds;
-  setFocusDisplayTime(focusSecondsLeft);
-  syncPomodoroChrome();
+  restoreSession();
+  setRoom(false);
 }
 
 function resetReviewData() {
@@ -722,15 +777,31 @@ let pomodoroListenersBound = false;
 
 function initPomodoroUI() {
   hydratePomodoroForm();
-  focusChunkTotalSeconds = durationForPhase(pomoPhase);
-  if (!focusTimerId) {
-    focusSecondsLeft = focusChunkTotalSeconds;
-    setFocusDisplayTime(focusSecondsLeft);
-  }
-  syncPomodoroChrome();
-
+  restoreSession();
   if (pomodoroListenersBound) return;
   pomodoroListenersBound = true;
+  pomodoroEl("unlink-task").onclick = () => startTaskFocus(null);
+  pomodoroEl("room-choice").onchange = e => {
+    const store = loadFocusStore();
+    store.scene = e.target.value;
+    saveFocusStore(store);
+    document.body.dataset.room = store.scene;
+  };
+  pomodoroEl("room-toggle").onclick = () => setRoom(!pomodoroEl("view-focus").classList.contains("immersed"));
+  window.addEventListener("storage", e => {
+    if (e.key !== FOCUS_KEY) return;
+    restoreSession();
+    hydratePomodoroForm();
+    renderFocusLog();
+    renderHomeStats();
+  });
+  pomodoroEl("resume-study").onclick = () => {
+    if (loadFocusStore().session) {
+      showView("focus");
+      if (!focusTimerId) startPomodoroTick();
+      setRoom(true);
+    } else startTaskFocus(agendaTasks()[0] || null);
+  };
 
   pomodoroEl("btn-pomo-start")?.addEventListener("click", () => startPomodoroTick());
   pomodoroEl("btn-pomo-pause")?.addEventListener("click", () => pausePomodoro());
@@ -791,7 +862,7 @@ function renderFocusLog() {
       hour: "2-digit",
       minute: "2-digit",
     });
-    li.textContent = `${when} · ${kindLabel(kind)} ${L.minutes}분`;
+    li.textContent = `${when} · ${kindLabel(kind)} ${L.minutes}분${L.taskTitle ? " · " + L.taskTitle : ""}`;
     ul.appendChild(li);
   }
   if (!logs.length) ul.innerHTML = `<li class="learning-empty">아직 세션 기록이 없습니다.</li>`;
@@ -853,7 +924,7 @@ function todayWorkMinutes() {
   const t = todayYMD();
   let min = 0;
   for (const L of logs) {
-    if (L.at.slice(0, 10) !== t) continue;
+    if (todayYMD(new Date(L.at)) !== t) continue;
     const kind = L.kind === "short" || L.kind === "long" ? L.kind : "work";
     if (kind === "work") min += L.minutes;
   }
@@ -865,7 +936,55 @@ function dueReviewCount() {
   return loadReview().filter((x) => new Date(x.nextReview).getTime() <= now).length;
 }
 
+function agendaTasks() {
+  const today = todayYMD();
+  return hubOptions.getTasks().filter(t => !t.done && (!t.due || todayYMD(new Date(t.due)) <= today))
+    .sort((a, b) => (a.due || "9999").localeCompare(b.due || "9999") || b.createdAt - a.createdAt);
+}
+
+function renderDesk() {
+  const agenda = agendaTasks();
+  const store = loadFocusStore();
+  const session = store.session;
+  const task = session ? session.task : agenda[0];
+  pomodoroEl("resume-title").textContent = task?.title || "오늘의 집중 공간";
+  pomodoroEl("resume-summary").textContent = session
+    ? (session.phase === "work" ? "집중" : "휴식") + " · " + Math.ceil(focusSecondsLeft / 60) + "분 남음"
+    : "다음 " + store.settings.work + "분 동안 한 가지에 집중하세요.";
+  pomodoroEl("resume-study").textContent = session ? "이어서 공부하기 →" : "집중 시작 →";
+  const list = pomodoroEl("desk-tasks");
+  list.replaceChildren();
+  for (const task of agenda.slice(0, 4)) {
+    const row = document.createElement("button");
+    row.className = "agenda-row";
+    row.textContent = task.title + " · " + taskProgress(task, store.logs);
+    row.setAttribute("aria-label", task.title + " 집중 시작");
+    row.onclick = () => startTaskFocus(task);
+    list.append(row);
+  }
+  if (!agenda.length) list.textContent = "오늘 예정된 할 일이 없습니다.";
+  const days = Array.from({length: 7}, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - 6 + i);
+    const minutes = store.logs.reduce((sum, log) =>
+      sum + (log.kind === "work" && todayYMD(new Date(log.at)) === todayYMD(d) ? log.minutes : 0), 0);
+    return { day: d.toLocaleDateString("ko-KR", {weekday: "short"}), minutes };
+  });
+  pomodoroEl("week-total").textContent = "총 " + days.reduce((sum, d) => sum + d.minutes, 0) + "분";
+  const bars = pomodoroEl("week-bars");
+  bars.replaceChildren();
+  const max = Math.max(1, ...days.map(d => d.minutes));
+  for (const d of days) {
+    const col = document.createElement("div");
+    const bar = document.createElement("i");
+    bar.style.height = Math.max(2, 48 * d.minutes / max) + "px";
+    col.append(d.minutes + "분", bar, d.day);
+    bars.append(col);
+  }
+}
+
 export function renderHomeStats() {
+  renderDesk();
   const streakEl = document.getElementById("home-stat-streak");
   const focusEl = document.getElementById("home-stat-focus");
   const reviewEl = document.getElementById("home-stat-review-due");

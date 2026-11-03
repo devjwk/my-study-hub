@@ -2124,3 +2124,43 @@ body {
     box-shadow: none !important;
   }
 }
+
+/* Study desk and illustrated focus rooms */
+body { --room-art: url("../assets/library.svg"); }
+body[data-room="studio"] { --room-art: url("../assets/studio.svg"); }
+.study-hero, .desk-grid { width: min(100%, 56rem); box-sizing: border-box; }
+.study-hero {
+  border-radius: 1.35rem; padding: clamp(1.4rem, 4vw, 2.8rem); color: #fff8e9;
+  background: linear-gradient(90deg,#102129f5,#102129db 37%,#10212912), var(--room-art) center/cover;
+}
+.hero-date { display: flex; justify-content: space-between; gap: 1rem; font: 600 .75rem var(--font-mono); letter-spacing: .06em; }
+.desk-clock { font: 400 1.05rem var(--font-mono); margin: 1.6rem 0 .5rem; }
+.study-hero h1 { font-size: clamp(1.65rem, 4vw, 2.8rem); margin: 0; overflow-wrap: anywhere; }
+.study-hero .btn { background: #f3d59e; color: #302917; margin-top: .5rem; }
+.desk-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: .8rem; }
+.desk-panel { min-width: 0; background: var(--bg-elevated); padding: 1.2rem; border: 1px solid var(--border); border-radius: 1rem; }
+.desk-panel h2 { font-size: 1.12rem; margin: .25rem 0 .75rem; }
+.desk-panel small { font: 600 .7rem var(--font-mono); letter-spacing: .15em; color: var(--text-muted); }
+#desk-tasks, #week-total { color: var(--text-muted); font-size: .88rem; }
+.agenda-row { display: block; width: 100%; border: 0; border-bottom: 1px solid var(--border); background: transparent; color: var(--text); text-align: left; padding: .65rem 0; cursor: pointer; overflow-wrap: anywhere; }
+#week-bars { display: flex; justify-content: space-between; gap: .2rem; }
+#week-bars div { flex: 1; display: flex; flex-direction: column; justify-content: end; align-items: center; gap: .2rem; color: var(--text-muted); font-size: .72rem; }
+#week-bars i { width: min(100%,1.2rem); background: #648f89; border-radius: 4px; }
+.room-tools { display: flex; align-items: center; justify-content: space-between; gap: .4rem; font-size: .82rem; }
+.room-tools select { font: inherit; padding: .35rem; border-radius: .4rem; }
+#room-task { margin: .7rem auto; overflow-wrap: anywhere; }
+#view-focus.immersed.view--active { max-width: none; width: 100%; align-items: center; justify-content: center; min-height: 82svh;
+  background: linear-gradient(#10202a26,#10202a40),var(--room-art) center/cover; }
+#view-focus.immersed > :not(.focus-card), .immersed .pomodoro__details, .immersed .pomodoro__modes, .immersed #pomo-hint { display: none; }
+#view-focus.immersed .focus-card { background: #15262dee; color: #fff7e7; border: 1px solid #ffffff40; border-radius: 1.5rem; width: min(100%,25rem); margin: 1rem auto; }
+.immersed .pomodoro__round, .immersed .pomodoro__time, .immersed .pomodoro__phase, .immersed .btn--ghost { color: #fff4db; }
+.immersed .pomodoro__ring-progress { stroke: #e8c58c; }
+.pomodoro__controls [hidden] { display: none; }
+.task__actions { flex-wrap: wrap; }
+@media (max-width: 600px) {
+  .desk-grid { grid-template-columns: 1fr; }
+  .hero-date { flex-wrap: wrap; }
+  .task { flex-wrap: wrap; }
+}
+
+#unlink-task[hidden], .immersed #unlink-task { display: none; }
