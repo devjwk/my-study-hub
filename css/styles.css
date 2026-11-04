@@ -312,24 +312,64 @@ body:not(:has(#view-home.view--active)) .hub-bar__date { visibility: hidden; }
 .focus-card { padding-top: 2rem; }
 .room-tools { display: flex; justify-content: flex-end; align-items: center; gap: .6rem; font-size: 14px; color: var(--sub); margin-bottom: 1rem; }
 .room-tools label { display: flex; align-items: center; gap: .5rem; }
-#unlink-task { margin-top: .3rem; margin-left: -.3rem; }
-.pomodoro__modes { margin-top: 1.6rem; display: flex; gap: 4px; flex-wrap: wrap; }
-.pomodoro__time { font: 400 clamp(7rem, 19vw, 15rem)/.85 var(--num); letter-spacing: -.04em; margin: 1.2rem 0 0; font-variant-numeric: tabular-nums; }
-body:has(#btn-pomo-start[hidden]) .pomodoro__time { color: var(--green); }
+.focus-center { display: grid; justify-items: center; text-align: center; }
+#unlink-task { margin-top: .3rem; }
+.pomodoro__modes { margin-top: 1.4rem; display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; }
+
+/* 플립 시계 — 직각 카드, 가운데 경첩선. 위 날개가 접히고 아래 날개가 펼쳐진다 */
+.flipclock { --fs: clamp(4.2rem, 13vw, 10rem); display: flex; align-items: center; gap: calc(var(--fs) * .06); margin-top: 1.8rem; font: 400 var(--fs) / 1 var(--num); }
+.flip { position: relative; width: .74em; height: 1.06em; perspective: 4em; }
+.flip__half, .flip__flap { position: absolute; inset: 0; display: grid; place-items: center; font: inherit; font-variant-numeric: tabular-nums; background: var(--ink); color: var(--bg); backface-visibility: hidden; }
+.flip__half--top, .flip__flap--top { clip-path: inset(0 0 50% 0); background: color-mix(in srgb, var(--ink) 90%, var(--bg)); }
+.flip__half--bottom, .flip__flap--bottom { clip-path: inset(50% 0 0 0); }
+.flip__flap { z-index: 2; transform-origin: 50% 50%; }
+.flip__flap--top { animation: flip-down .24s ease-in forwards; }
+.flip__flap--bottom { transform: rotateX(90deg); animation: flip-up .24s ease-out .24s forwards; }
+.flip::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px; margin-top: -1px; z-index: 3; background: var(--bg); opacity: .45; }
+@keyframes flip-down { to { transform: rotateX(-90deg); } }
+@keyframes flip-up { to { transform: rotateX(0deg); } }
+.flip-colon { position: relative; width: .22em; height: 1.06em; }
+.flip-colon::before, .flip-colon::after { content: ""; position: absolute; left: 50%; width: .1em; height: .1em; margin-left: -.05em; background: var(--ink); }
+.flip-colon::before { top: 32%; }
+.flip-colon::after { top: 60%; }
+
+.meter--clock { width: min(100%, 30rem); max-width: none; margin: 1.4rem auto 0; }
 .pomodoro__meta { margin-top: .9rem; color: var(--sub); font-size: 15px; }
 #pomo-phase-label { color: var(--ink); font-weight: 600; }
-.pomodoro__controls { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 1.6rem; align-items: center; }
+
+/* 시계와 같은 질감의 버튼: 직각 판 + 가운데 경첩선 */
+.pomodoro__controls { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin-top: 1.5rem; }
+.slab { position: relative; padding: 1.05rem 1.6rem; font-size: 16px; background: var(--ink); color: var(--bg); }
+.slab::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: currentColor; opacity: .14; }
+.slab:hover { background: var(--green); color: var(--green-ink); }
+.slab--go { background: var(--green); color: var(--green-ink); }
+.slab--go:hover { background: var(--ink); color: var(--bg); }
+.slab--quiet { background: var(--surface-2); color: var(--ink); }
 .pomodoro__hint { font-size: 13px; color: var(--sub); margin-top: 1rem; }
-.more { margin-top: 2rem; }
-.more summary { cursor: pointer; font-weight: 600; font-size: 15px; list-style: none; display: inline-block; }
-.more summary::-webkit-details-marker { display: none; }
-.more summary::after { content: " +"; color: var(--sub); }
-.more[open] summary::after { content: " −"; }
-.settings-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .9rem; margin-top: 1rem; }
+.link-btn { background: none; border: 0; padding: 0; font: inherit; color: var(--sub); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.link-btn:hover { color: var(--ink); }
+
+/* 타이머 설정 — 브라우저 popover */
+.timer-pop { border: 0; padding: 1.4rem 1.6rem 1.6rem; background: var(--bg); color: var(--ink); width: min(100% - 32px, 34rem); box-shadow: 0 30px 80px -20px rgb(0 0 0 / .45); }
+.timer-pop::backdrop { background: rgb(10 12 11 / .4); }
+.timer-pop__head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.timer-pop__head h2 { font-size: 18px; font-weight: 600; }
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .9rem; }
 .settings-grid .check { grid-column: span 2; }
-@media (max-width: 760px) { .settings-grid { grid-template-columns: 1fr 1fr; } }
 .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 60; background: var(--ink); color: var(--bg); padding: .85rem 1.2rem; font-size: 15px; font-weight: 500; max-width: calc(100% - 32px); }
 .toast[data-kind="good"] { background: var(--green); color: var(--green-ink); }
+
+/* 최근 집중 기록 — 눌러서 펼치는 카드 */
+.log-card { margin-top: 3.5rem; background: var(--surface); }
+.log-card summary { display: flex; align-items: baseline; gap: 1rem; padding: 1.1rem 1.2rem; cursor: pointer; list-style: none; }
+.log-card summary::-webkit-details-marker { display: none; }
+.log-card summary::after { content: "+"; margin-left: auto; color: var(--sub); }
+.log-card[open] summary::after { content: "−"; }
+.log-card__title { font-weight: 600; }
+.log-card__aside { font-size: 14px; color: var(--sub); }
+.log-card[open] > :not(summary) { animation: rise .25s ease-out; }
+.log-card .list--log { padding: 0 1.2rem .6rem; }
+.log-card .reset { margin: 0; padding: .6rem 1.2rem 1.2rem; }
 .list--log { gap: 0; }
 .list--log > li { background: transparent; padding: .3rem 0; font-size: 15px; color: var(--sub); font-variant-numeric: tabular-nums; }
 .list--log > li:nth-child(-n+3) { color: var(--ink); }
@@ -342,7 +382,13 @@ body[data-room="studio"] { --room-art: url("../assets/studio.svg"); }
 #view-focus.immersed > :not(.focus-card) { display: none; }
 .immersed .label, .immersed .pomodoro__meta, .immersed .pomodoro__hint, .immersed .room-tools { color: #f4efe3b3; }
 .immersed #pomo-phase-label { color: #f4efe3; }
-.immersed .pomodoro__time { color: #f4efe3 !important; }
+.immersed .flip__half, .immersed .flip__flap { background: #0e171b; color: #f4efe3; }
+.immersed .flip__half--top, .immersed .flip__flap--top { background: #1a252b; }
+.immersed .flip::after { background: #0f1b20; opacity: .9; }
+.immersed .flip-colon::before, .immersed .flip-colon::after { background: #f4efe3; }
+.immersed .slab { background: #ffffff1f; color: #f4efe3; }
+.immersed .slab--go { background: #e8c58c; color: #2a2210; }
+.immersed .link-btn { color: #f4efe3b3; }
 .immersed .meter { background: #ffffff26; }
 .immersed .meter i { background: #e8c58c; }
 .immersed .chip { background: #ffffff1a; color: #f4efe3; }
@@ -353,7 +399,7 @@ body[data-room="studio"] { --room-art: url("../assets/studio.svg"); }
 .immersed .btn--line:hover { background: #f4efe3; color: #0f1b20; }
 .immersed #btn-pomo-start, .immersed #btn-pomo-pause { background: #e8c58c; color: #2a2210; }
 .immersed .input { background: #ffffff1a; color: #f4efe3; }
-.immersed .more, .immersed .pomodoro__modes { display: none; }
+.immersed .pomodoro__modes { display: none; }
 
 /* 회고 */
 .learning-panel__meta { font-size: 14px; color: var(--sub); }

@@ -533,7 +533,55 @@ function setFocusDisplayTime(totalSec) {
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
   const rs = s % 60;
-  el.textContent = h > 0 ? `${h}:${pad2(m)}:${pad2(rs)}` : `${m}:${pad2(rs)}`;
+  el.setAttribute("aria-label", `남은 시간 ${h ? `${h}시간 ` : ""}${m}분 ${rs}초`);
+  renderFlip(el, h > 0 ? `${h}:${pad2(m)}:${pad2(rs)}` : `${pad2(m)}:${pad2(rs)}`);
+}
+
+/**
+ * 플립 시계: 바뀐 자리만 새 카드로 갈아 끼운다.
+ * 카드 한 장 = 고정된 위·아래 반쪽 + 넘어가는 위·아래 날개(이전 숫자가 아래로 접히고, 새 숫자가 펼쳐짐).
+ */
+function renderFlip(el, text) {
+  const prev = el.dataset.text || "";
+  if (prev === text) return;
+  el.dataset.text = text;
+  const animate = prev.length === text.length && !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (prev.length !== text.length) {
+    el.replaceChildren(...[...text].map((ch) => flipCell(ch, ch, false)));
+    return;
+  }
+  [...text].forEach((ch, i) => {
+    if (ch !== prev[i]) el.children[i].replaceWith(flipCell(prev[i], ch, animate));
+  });
+}
+
+function flipCell(oldCh, newCh, animate) {
+  if (newCh === ":") {
+    const colon = document.createElement("span");
+    colon.className = "flip-colon";
+    colon.setAttribute("aria-hidden", "true");
+    return colon;
+  }
+  const cell = document.createElement("span");
+  cell.className = "flip";
+  cell.setAttribute("aria-hidden", "true");
+  const part = (cls, t) => {
+    const b = document.createElement("b");
+    b.className = cls;
+    b.textContent = t;
+    return b;
+  };
+  cell.append(part("flip__half flip__half--top", newCh), part("flip__half flip__half--bottom", animate ? oldCh : newCh));
+  if (animate) {
+    const bottomFlap = part("flip__flap flip__flap--bottom", newCh);
+    cell.append(part("flip__flap flip__flap--top", oldCh), bottomFlap);
+    // 다 넘어가면 밑에 남은 이전 숫자를 새 숫자로 바꾸고 날개를 치운다 (반투명 배경에서 비치지 않게)
+    bottomFlap.addEventListener("animationend", () => {
+      cell.querySelector(".flip__half--bottom").textContent = newCh;
+      cell.querySelectorAll(".flip__flap").forEach((f) => f.remove());
+    }, { once: true });
+  }
+  return cell;
 }
 
 function stopFocusTimer() {
@@ -1017,6 +1065,13 @@ function renderFocusLog() {
     ul.appendChild(li);
   }
   if (!logs.length) ul.innerHTML = `<li class="learning-empty">아직 기록이 없어요. 첫 집중을 시작해 보세요.</li>`;
+  const summary = document.getElementById("focus-log-summary");
+  if (summary) {
+    const today = loadFocusLogs().filter((L) => (L.kind || "work") === "work" && todayYMD(new Date(L.at)) === todayYMD());
+    summary.textContent = today.length
+      ? `오늘 ${today.length}번 · ${today.reduce((sum, L) => sum + L.minutes, 0)}분`
+      : "오늘은 아직 없어요";
+  }
 }
 
 function renderReflect() {

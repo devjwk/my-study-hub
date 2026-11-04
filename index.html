@@ -208,30 +208,35 @@
               <button id="room-toggle" type="button" class="btn btn--text btn--sm">화면 가득 보기</button>
             </div>
 
-            <p class="label">지금 하는 일</p>
-            <h1 id="room-task">자유롭게 집중</h1>
-            <button id="unlink-task" type="button" class="btn btn--text btn--sm" hidden>할 일 없이 집중하기</button>
+            <div class="focus-center">
+              <p class="label">지금 하는 일</p>
+              <h1 id="room-task">자유롭게 집중</h1>
+              <button id="unlink-task" type="button" class="btn btn--text btn--sm" hidden>할 일 없이 집중하기</button>
 
-            <div class="pomodoro__modes" role="tablist" aria-label="타이머 종류">
-              <button type="button" class="chip" id="pomo-mode-work" role="tab" aria-selected="true" data-pomo-mode="work">집중</button>
-              <button type="button" class="chip" id="pomo-mode-short" role="tab" aria-selected="false" data-pomo-mode="short">짧게 쉬기</button>
-              <button type="button" class="chip" id="pomo-mode-long" role="tab" aria-selected="false" data-pomo-mode="long">길게 쉬기</button>
+              <div class="pomodoro__modes" role="tablist" aria-label="타이머 종류">
+                <button type="button" class="chip" id="pomo-mode-work" role="tab" aria-selected="true" data-pomo-mode="work">집중</button>
+                <button type="button" class="chip" id="pomo-mode-short" role="tab" aria-selected="false" data-pomo-mode="short">짧게 쉬기</button>
+                <button type="button" class="chip" id="pomo-mode-long" role="tab" aria-selected="false" data-pomo-mode="long">길게 쉬기</button>
+              </div>
+
+              <div class="flipclock" id="focus-display" role="timer" aria-label="남은 시간 25분 0초"></div>
+              <div class="meter meter--clock" aria-hidden="true"><i id="pomo-bar"></i></div>
+              <p class="pomodoro__meta"><span id="pomo-phase-label">집중</span> · <span id="pomo-round-label" aria-live="polite"></span></p>
+
+              <div class="pomodoro__controls">
+                <button type="button" class="btn slab slab--go" id="btn-pomo-start">시작</button>
+                <button type="button" class="btn slab slab--go" id="btn-pomo-pause">잠깐 멈추기</button>
+                <button type="button" class="btn slab" id="btn-pomo-reset">처음부터</button>
+                <button type="button" class="btn slab slab--quiet" popovertarget="timer-settings">타이머 설정</button>
+              </div>
+              <p class="pomodoro__hint"><span id="pomo-hint"></span> · <button type="button" class="link-btn" id="btn-pomo-skip">이번 건 넘기기</button></p>
             </div>
 
-            <p class="pomodoro__time" id="focus-display">25:00</p>
-            <div class="meter meter--wide" aria-hidden="true"><i id="pomo-bar"></i></div>
-            <p class="pomodoro__meta"><span id="pomo-phase-label">집중</span> · <span id="pomo-round-label" aria-live="polite"></span></p>
-
-            <div class="pomodoro__controls">
-              <button type="button" class="btn btn--lg" id="btn-pomo-start">시작</button>
-              <button type="button" class="btn btn--lg" id="btn-pomo-pause">잠깐 멈추기</button>
-              <button type="button" class="btn btn--line btn--lg" id="btn-pomo-reset">처음부터</button>
-              <button type="button" class="btn btn--text" id="btn-pomo-skip">이번 건 넘기기</button>
-            </div>
-            <p class="pomodoro__hint" id="pomo-hint"></p>
-
-            <details class="more">
-              <summary>시간·알림 바꾸기</summary>
+            <div class="timer-pop" id="timer-settings" popover aria-labelledby="timer-settings-title">
+              <div class="timer-pop__head">
+                <h2 id="timer-settings-title">타이머 설정</h2>
+                <button type="button" class="btn btn--text" popovertarget="timer-settings" popovertargetaction="hide">닫기</button>
+              </div>
               <div class="settings-grid">
                 <label class="field"><span class="field__label">집중 (분)</span><input type="number" id="pomo-set-work" class="input" min="1" max="180" value="25" /></label>
                 <label class="field"><span class="field__label">짧게 쉬기 (분)</span><input type="number" id="pomo-set-short" class="input" min="1" max="60" value="5" /></label>
@@ -240,13 +245,15 @@
                 <label class="check"><input type="checkbox" id="pomo-pref-autostart" /> 끝나면 다음 걸 바로 시작</label>
                 <label class="check"><input type="checkbox" id="pomo-pref-sound" checked /> 끝날 때 소리로 알려주기</label>
               </div>
-            </details>
+            </div>
             <p class="toast" id="pomo-toast" role="status" aria-live="polite" hidden></p>
           </div>
 
-          <h2 class="section-title">최근 집중 기록</h2>
-          <ul class="list list--log" id="list-focus-log"></ul>
-          <p class="reset">집중 기록과 시간 설정을 처음 상태로 돌리려면 <button type="button" id="btn-reset-focus-data">기록 지우기</button></p>
+          <details class="log-card">
+            <summary><span class="log-card__title">최근 집중 기록</span> <span class="log-card__aside" id="focus-log-summary"></span></summary>
+            <ul class="list list--log" id="list-focus-log"></ul>
+            <p class="reset">집중 기록과 시간 설정을 처음 상태로 돌리려면 <button type="button" id="btn-reset-focus-data">기록 지우기</button></p>
+          </details>
         </section>
 
         <!-- 할 일 -->
