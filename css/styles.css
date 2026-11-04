@@ -201,13 +201,13 @@ body:not(:has(#view-home.view--active)) .hub-bar__date { visibility: hidden; }
 @media (max-width: 600px) { .contrib-wrap .section-title { display: block; } .contrib-wrap .section-title__aside { display: block; margin-top: .2rem; } }
 /* rtl: 가로 스크롤이 생기면 오늘(오른쪽 끝)부터 보인다 */
 .contrib-scroll { overflow-x: auto; scrollbar-width: none; container-type: inline-size; direction: rtl; }
-.contrib { direction: ltr; }
+.contrib { direction: ltr; margin-right: auto; } /* 폭이 남으면 왼쪽부터, 넘치면 오늘 쪽부터 */
 .contrib-scroll::-webkit-scrollbar { display: none; }
 .contrib { --cell: 13px; --gap: 3px; display: grid; grid-template-columns: auto auto; grid-template-areas: ". months" "days grid"; column-gap: .5rem; row-gap: 4px; width: max-content; }
 .contrib--plain { grid-template-columns: auto; grid-template-areas: "grid"; }
 /* 홈 잔디는 가로 폭을 꽉 채운다 (53주 + 요일 칸), 좁으면 11px로 두고 가로 스크롤 */
 .contrib:not(.contrib--plain) { --cell: max(11px, calc((100cqw - 1.4rem - 52 * var(--gap)) / 53)); }
-.contrib--plain { --cell: 15px; }
+.contrib--plain { --cell: clamp(13px, calc((100cqw - 25 * var(--gap)) / 26), 22px); }
 .contrib__months { grid-area: months; display: grid; column-gap: var(--gap); font-size: 12px; color: var(--sub); }
 .contrib__months span { white-space: nowrap; }
 .contrib__days { grid-area: days; display: grid; grid-template-rows: repeat(7, var(--cell)); row-gap: var(--gap); font-size: 11px; line-height: var(--cell); color: var(--sub); }
@@ -452,25 +452,21 @@ html[data-photo] {
   --pane-edge: inset 0 0 0 1px color-mix(in srgb, #fff 16%, transparent), 0 24px 60px -32px rgb(0 0 0 / .45);
 }
 html[data-photo] .tint-strength { display: none; }
-/* 홈: 구역마다 판 하나씩 */
-html[data-photo] #view-home .hero,
-html[data-photo] #view-home .apps,
-html[data-photo] #view-home .contrib-wrap,
-html[data-photo] #view-home .split > section { background: var(--pane); box-shadow: var(--pane-edge); padding: 28px; }
-html[data-photo] #view-home .hero { margin-top: 1rem; }
-html[data-photo] #view-home .apps,
-html[data-photo] #view-home .contrib-wrap { margin-top: 12px; }
-html[data-photo] #view-home .split { gap: 12px; margin-top: 12px; }
-html[data-photo] #view-home .contrib-wrap .section-title,
-html[data-photo] #view-home .split .section-title { margin-top: 0; }
-/* 나머지 화면: 화면 전체가 판 하나 */
-html[data-photo] .view--active:not(#view-home):not(.immersed) { background: var(--pane); box-shadow: var(--pane-edge); padding: 8px 32px 32px; margin-top: .5rem; }
-@media (max-width: 600px) {
-  html[data-photo] #view-home .hero, html[data-photo] #view-home .apps, html[data-photo] #view-home .contrib-wrap,
-  html[data-photo] #view-home .split > section { padding: 20px 16px; }
-  html[data-photo] .view--active:not(#view-home):not(.immersed) { padding: 4px 16px 24px; }
-}
-/* 화면 가득 집중: 고른 사진을 선명하게 */
+/* 모든 화면: 구역(.pane)마다 판 하나씩 띄운다 */
+html[data-photo] .pane { background: var(--pane); box-shadow: var(--pane-edge); padding: 28px; }
+html[data-photo] .view--active > .pane,
+html[data-photo] .view--active > .split { margin-top: 12px; }
+html[data-photo] .view--active > .pane:first-child { margin-top: 1rem; }
+html[data-photo] .split { gap: 12px; }
+html[data-photo] .pane > .page-head { padding-top: 0; }
+html[data-photo] .pane > .section-title:first-child,
+html[data-photo] .pane > :first-child > .section-title:first-child { margin-top: 0; }
+html[data-photo] .pane > .compose:last-child { margin-bottom: 0; }
+html[data-photo] .pane > .toolbar:first-child { margin-top: 0; }
+html[data-photo] .hero.pane { padding: 32px 28px; }
+html[data-photo] .log-card.pane { padding: 0; }
+html[data-photo] .immersed .pane { background: none; box-shadow: none; padding: 0; }
+@media (max-width: 600px) { html[data-photo] .pane { padding: 20px 16px; } }
 html[data-photo] #view-focus.immersed { background: linear-gradient(90deg, #0f1b20e6, #0f1b20b3 45%, #0f1b2040), var(--photo) center / cover; }
 html[data-photo] .room-tools label { display: none; }
 @media (max-width: 600px) { .app__sub { white-space: normal; } }
