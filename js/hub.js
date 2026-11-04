@@ -1539,30 +1539,30 @@ function initHubSettingsDock() {
   const closeBtn = document.getElementById("btn-hub-settings-close");
   if (!root || !panel || !toggle) return;
 
+  // hidden 대신 클래스로 열고 닫아야 오른쪽에서 밀려 나오는 전환이 보인다.
+  // 닫혀 있을 땐 inert라 키보드·스크린리더가 들어가지 않는다.
+  const isOpen = () => panel.classList.contains("is-open");
   /** @param {boolean} open */
   function setOpen(open) {
-    panel.hidden = !open;
+    panel.classList.toggle("is-open", open);
+    panel.inert = !open;
     toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) closeBtn?.focus({ preventScroll: true });
+    else if (panel.contains(document.activeElement)) toggle.focus({ preventScroll: true });
   }
 
   toggle.addEventListener("click", (e) => {
     e.stopPropagation();
-    setOpen(panel.hidden);
+    setOpen(!isOpen());
   });
   closeBtn?.addEventListener("click", () => setOpen(false));
-  document.querySelectorAll("[data-open-settings]").forEach((btn) =>
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      setOpen(true);
-    }),
-  );
 
   document.addEventListener("click", (e) => {
-    if (panel.hidden || !(e.target instanceof Node)) return;
+    if (!isOpen() || !(e.target instanceof Node)) return;
     if (!root.contains(e.target)) setOpen(false);
   });
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !panel.hidden) setOpen(false);
+    if (e.key === "Escape" && isOpen()) setOpen(false);
   });
 }

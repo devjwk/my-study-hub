@@ -123,8 +123,12 @@ body:not(:has(#view-home.view--active)) .hub-bar__date { visibility: hidden; }
   width: min(100%, 26rem); overflow-y: auto;
   background: var(--bg); padding: 1.4rem 1.6rem 2rem;
   box-shadow: -24px 0 60px -30px rgb(0 0 0 / .35);
+  transform: translateX(100%); visibility: hidden;
+  transition: transform .32s cubic-bezier(.22, 1, .36, 1), visibility 0s linear .32s;
   display: grid; align-content: start; gap: 2rem;
 }
+.hub-settings__panel.is-open { transform: none; visibility: visible; transition: transform .32s cubic-bezier(.22, 1, .36, 1), visibility 0s; }
+@media (prefers-reduced-motion: reduce) { .hub-settings__panel, .hub-settings__panel.is-open { transition: none; } }
 .hub-settings__head { display: flex; justify-content: space-between; align-items: center; }
 .hub-settings__head h2 { font-size: 20px; font-weight: 600; }
 .hub-settings__section { display: grid; gap: .8rem; }
@@ -420,7 +424,6 @@ html[data-photo] .view--active:not(#view-home):not(.immersed) { background: var(
   html[data-photo] #view-home .split > section { padding: 20px 16px; }
   html[data-photo] .view--active:not(#view-home):not(.immersed) { padding: 4px 16px 24px; }
 }
-html[data-photo] .hub-settings__panel { background: color-mix(in srgb, var(--base) 92%, transparent); }
 /* 화면 가득 집중: 고른 사진을 선명하게 */
 html[data-photo] #view-focus.immersed { background: linear-gradient(90deg, #0f1b20e6, #0f1b20b3 45%, #0f1b2040), var(--photo) center / cover; }
 html[data-photo] .room-tools label { display: none; }
