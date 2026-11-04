@@ -470,3 +470,34 @@ html[data-photo] .immersed .pane { background: none; box-shadow: none; padding: 
 html[data-photo] #view-focus.immersed { background: linear-gradient(90deg, #0f1b20e6, #0f1b20b3 45%, #0f1b2040), var(--photo) center / cover; }
 html[data-photo] .room-tools label { display: none; }
 @media (max-width: 600px) { .app__sub { white-space: normal; } }
+
+/* ── 넓은 화면: 홈을 한 화면짜리 대시보드 격자로 ──
+   노트북 크롬 기본 창(약 1280×720 ~ 1440×790)에서 스크롤 없이 다 보이게 한다. */
+@media (min-width: 1100px) {
+  #view-home.view--active {
+    display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+    grid-template-areas: "hero today" "apps apps" "graph week";
+    gap: clamp(1.4rem, 5vh, 3rem) 3rem; align-items: stretch; /* 같은 줄의 판은 같은 높이 */
+    /* 창 높이(헤더 약 76px 제외) 안에서 가운데. 간격은 화면 높이에 맞춰 조금만 늘린다 */
+    min-height: calc(100svh - 76px - 2rem); align-content: center;
+  }
+  body:has(#view-home.view--active) .hub { padding-bottom: 2rem; }
+  #view-home .split { display: contents; }
+  #view-home .hero { grid-area: hero; padding: 0; gap: 2rem; }
+  #view-home .split > section:first-child { grid-area: today; }
+  #view-home .split > section:last-child { grid-area: week; }
+  #view-home .apps { grid-area: apps; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0 1.2rem; padding: .2rem 0; }
+  #view-home .contrib-wrap { grid-area: graph; }
+  #view-home .section-title { margin: 0 0 .8rem; }
+  #view-home .big { font-size: clamp(5.5rem, 20vh, 11rem); }
+  #view-home .guide { font-size: clamp(1.1rem, 1.5vw, 1.35rem); }
+  #view-home .hero__copy { gap: .9rem; }
+  #view-home .meter { margin-top: 1rem; }
+  #view-home .agenda-row { padding: .75rem .9rem; }
+  #view-home .week { height: clamp(132px, 19vh, 220px); }
+  #view-home .app__sub { white-space: normal; }
+  #view-home .contrib:not(.contrib--plain) { --gap: 2px; --cell: max(8px, calc((100cqw - 1.4rem - 52 * var(--gap)) / 53)); }
+  #view-home .contrib__months { font-size: 11px; }
+  html[data-photo] #view-home.view--active { gap: 12px; }
+  html[data-photo] #view-home .pane { margin-top: 0; padding: 16px 22px; }
+}
