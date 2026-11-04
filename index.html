@@ -117,7 +117,7 @@
       <main class="hub-main">
         <!-- 오늘 -->
         <section id="view-home" class="view view--active" aria-label="오늘">
-          <div class="hero">
+          <div class="hero pane">
             <div>
               <p class="label">오늘 집중한 시간</p>
               <p class="big"><span id="home-stat-focus">0</span><small>/<span id="home-goal">120</span><span class="unit">분</span></small></p>
@@ -129,7 +129,7 @@
             </div>
           </div>
 
-          <nav class="apps" aria-label="모든 기능">
+          <nav class="apps pane" aria-label="모든 기능">
             <button type="button" class="app" data-hub-view="focus">
               <svg class="app__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V9.5M9.5 2.5h5M12 2.5V6M18.5 6.5l1.5-1.5"/></svg>
               <span class="app__text"><span class="app__name">집중</span><span class="app__sub" id="tile-focus-sub">한 번에 25분씩</span></span>
@@ -156,7 +156,7 @@
             </button>
           </nav>
 
-          <section class="contrib-wrap" aria-labelledby="contrib-title">
+          <section class="contrib-wrap pane" aria-labelledby="contrib-title">
             <h2 class="section-title" id="contrib-title">공부한 날 <span class="section-title__aside" id="home-contrib-summary"></span></h2>
             <div class="contrib-scroll">
               <div class="contrib">
@@ -169,11 +169,11 @@
           </section>
 
           <div class="split">
-            <section>
+            <section class="pane">
               <h2 class="section-title">오늘 할 일 <button type="button" class="btn btn--text btn--sm" data-hub-view="organize">전부 보기 →</button></h2>
               <div id="desk-tasks" class="agenda"></div>
             </section>
-            <section>
+            <section class="pane">
               <h2 class="section-title">지난 7일 <span class="section-title__aside" id="week-total"></span></h2>
               <div id="week-bars" class="week"></div>
             </section>
@@ -182,6 +182,7 @@
 
         <!-- 복습 -->
         <section id="view-review" class="view" aria-label="복습">
+          <div class="pane">
           <div class="page-head">
             <h1>복습</h1>
             <p class="desc">얼마나 기억났는지 고르면 다음에 볼 날을 알아서 정해줘요.</p>
@@ -194,13 +195,16 @@
             </label>
             <button type="submit" class="btn">추가</button>
           </form>
+          </div>
+          <div class="pane">
           <ul class="list" id="list-review"></ul>
+          </div>
           <p class="reset">복습 목록만 지우고 다른 기록은 그대로 두려면 <button type="button" id="btn-reset-review-data">복습 목록 지우기</button></p>
         </section>
 
         <!-- 집중 -->
         <section id="view-focus" class="view" aria-label="집중">
-          <div class="pomodoro focus-card" id="pomodoro-root">
+          <div class="pomodoro focus-card pane" id="pomodoro-root">
             <div class="room-tools">
               <label>배경
                 <select id="room-choice" class="input input--sm"><option value="library">비 오는 도서관</option><option value="studio">늦은 밤 작업실</option></select>
@@ -249,7 +253,7 @@
             <p class="toast" id="pomo-toast" role="status" aria-live="polite" hidden></p>
           </div>
 
-          <details class="log-card">
+          <details class="log-card pane">
             <summary><span class="log-card__title">최근 집중 기록</span> <span class="log-card__aside" id="focus-log-summary"></span></summary>
             <ul class="list list--log" id="list-focus-log"></ul>
             <p class="reset">집중 기록과 시간 설정을 처음 상태로 돌리려면 <button type="button" id="btn-reset-focus-data">기록 지우기</button></p>
@@ -258,6 +262,7 @@
 
         <!-- 할 일 -->
         <section id="view-organize" class="view" aria-label="할 일">
+          <div class="pane">
           <div class="page-head">
             <h1>할 일</h1>
             <p class="desc">
@@ -285,7 +290,9 @@
               <label class="field"><span class="field__label">태그 (쉼표로 구분)</span><input type="text" id="input-tags" class="input" placeholder="487, 과제" /></label>
             </div>
           </form>
+          </div>
 
+          <div class="pane">
           <div class="toolbar">
             <input type="search" id="input-search" class="input" placeholder="제목이나 태그로 찾기" aria-label="찾기" />
             <div class="chips" role="group" aria-label="보기">
@@ -306,8 +313,9 @@
 
           <ul class="list" id="task-list" aria-live="polite"></ul>
           <p class="empty" id="empty-state" hidden>보여줄 할 일이 없어요. 위에서 하나 적어보세요.</p>
+          </div>
 
-          <section class="milestone" aria-labelledby="milestone-title">
+          <section class="milestone pane" aria-labelledby="milestone-title">
             <div class="milestone__head">
               <h2 id="milestone-title" class="section-title">끝낸 일 <span class="milestone__count" id="milestone-count">0</span></h2>
               <button type="button" class="btn btn--text btn--sm" id="btn-milestone-reset">숫자 0으로</button>
@@ -325,6 +333,7 @@
 
         <!-- 회고 -->
         <section id="view-reflect" class="view" aria-label="회고">
+          <div class="pane">
           <div class="page-head">
             <h1>오늘 공부, 어땠어요?</h1>
             <p class="desc">짧게 남겨두면 나중에 어디서 막혔는지 한눈에 보여요.</p>
@@ -339,13 +348,17 @@
             <textarea id="input-reflect-note" class="input" rows="3" placeholder="막혔던 부분, 다음에 해볼 것" maxlength="2000" aria-label="메모"></textarea>
             <div><button type="submit" class="btn">남기기</button></div>
           </form>
+          </div>
+          <div class="pane">
           <h2 class="section-title">지난 기록</h2>
           <ul class="list" id="list-reflect"></ul>
+          </div>
           <p class="reset">회고만 모두 지우려면 <button type="button" id="btn-reset-reflect-data">회고 모두 지우기</button></p>
         </section>
 
         <!-- 카드 -->
         <section id="view-cards" class="view" aria-label="카드">
+          <div class="pane">
           <div class="page-head">
             <h1>카드</h1>
             <p class="desc">카드를 누르면 답이 보여요. 다시 누르면 질문으로 돌아가요.</p>
@@ -355,13 +368,16 @@
             <input type="text" id="input-card-back" class="input" placeholder="답" maxlength="500" aria-label="답" />
             <button type="submit" class="btn">만들기</button>
           </form>
+          </div>
+          <div class="pane">
           <div class="cards" id="grid-cards"></div>
+          </div>
           <p class="reset">카드만 모두 지우려면 <button type="button" id="btn-reset-cards-data">카드 모두 지우기</button></p>
         </section>
 
         <!-- 습관 -->
         <section id="view-habit" class="view" aria-label="습관">
-          <div class="hero">
+          <div class="hero pane">
             <div>
               <p class="label">계속 공부한 날</p>
               <p class="big"><span id="habit-streak">0</span><small><span class="unit">일째</span></small></p>
@@ -372,9 +388,11 @@
               <p class="hint">집중을 끝내거나, 복습하거나, 회고를 남기거나, 할 일을 끝내면 자동으로 체크돼요.</p>
             </div>
           </div>
+          <div class="pane">
           <h2 class="section-title">최근 26주 <span class="section-title__aside">칸에 마우스를 올리면 그날 한 게 보여요</span></h2>
           <div class="contrib-scroll"><div class="contrib contrib--plain"><div class="contrib__grid" id="habit-heat" role="img" aria-label="최근 26주 공부한 날"></div></div></div>
           <div class="heat-legend" aria-hidden="true">적게 <i data-lv="0"></i><i data-lv="1"></i><i data-lv="2"></i><i data-lv="3"></i><i data-lv="4"></i> 많이</div>
+          </div>
           <p class="reset">연속 기록만 0으로 돌리려면 <button type="button" id="btn-reset-streak-data">연속 기록 지우기</button></p>
         </section>
       </main>

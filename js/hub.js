@@ -1535,8 +1535,9 @@ export function initHub(options) {
     const title = titleIn instanceof HTMLInputElement ? titleIn.value.trim() : "";
     if (!title) return;
     const daysIn = document.getElementById("input-review-first-days");
-    const d =
-      daysIn instanceof HTMLInputElement ? Math.max(0, parseInt(daysIn.value, 10) || 1) : 1;
+    // 0(오늘 보기)도 유효한 값이라 `|| 1`로 기본값을 주면 안 된다
+    const n = daysIn instanceof HTMLInputElement ? parseInt(daysIn.value, 10) : NaN;
+    const d = Number.isNaN(n) ? 1 : Math.max(0, n);
     const next = addDaysIso(new Date().toISOString(), d);
     const items = loadReview();
     items.push({ id: uid(), title, nextReview: next });
