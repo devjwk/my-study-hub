@@ -10,6 +10,8 @@ const BG_TINT_HEX_KEY = "hub-bg-tint-hex";
 const BG_TINT_ALPHA_KEY = "hub-bg-tint-alpha";
 const DAILY_GOAL_KEY = "hub-daily-goal";
 const ACTIVITY_KEY = "learning-activity-v1";
+const BG_PHOTO_KEY = "hub-bg-photo";
+const BG_PHOTO_COLOR_KEY = "hub-bg-photo-color";
 
 /** Netlify 등 배포 후 전체 백업·복원(app.js)에서 사용 */
 export const HUB_STORAGE_KEYS = [
@@ -23,6 +25,8 @@ export const HUB_STORAGE_KEYS = [
   BG_TINT_ALPHA_KEY,
   DAILY_GOAL_KEY,
   ACTIVITY_KEY,
+  BG_PHOTO_KEY,
+  BG_PHOTO_COLOR_KEY,
 ];
 
 const BASE_BG = { light: [241, 240, 236], dark: [20, 22, 21] };
@@ -89,6 +93,10 @@ export function applyBackgroundTint() {
   const b = parseInt(h.slice(4, 6), 16);
   if ([r, g, b].some((x) => Number.isNaN(x))) return;
   const root = document.documentElement;
+  const photo = localStorage.getItem(BG_PHOTO_KEY);
+  root.toggleAttribute("data-photo", Boolean(photo));
+  if (photo) root.style.setProperty("--photo", `url("${photo}")`);
+  else root.style.removeProperty("--photo");
   let mix = Math.min(42, Math.max(0, strengthPct * 0.95));
   const isDark = root.getAttribute("data-theme") === "dark";
   if (isDark) mix = Math.min(48, mix * 1.1);
@@ -103,8 +111,19 @@ export function applyBackgroundTint() {
   root.style.setProperty("--bg-tint-mix-soft", `${soft.toFixed(1)}%`);
   root.style.setProperty("--bg-tint-mix-corner", `${corner.toFixed(1)}%`);
 
-  // 대표색: 기본(진하기 0)이면 테마 기본 녹색, 아니면 고른 색에서 계산
-  if (strengthPct === 0) {
+  // 대표색: 사진이 있으면 사진 색, 기본(진하기 0)이면 테마 기본 녹색, 아니면 고른 색에서 계산
+  const photoColor = photo && /^#[0-9a-f]{6}$/i.test(localStorage.getItem(BG_PHOTO_COLOR_KEY) || "")
+    ? localStorage.getItem(BG_PHOTO_COLOR_KEY) : null;
+  if (photoColor) {
+    const src = [1, 3, 5].map((i) => parseInt(photoColor.slice(i, i + 2), 16));
+    // 사진 위 막(테마 바탕 55%)을 지난 실제 배경을 기준으로 대비를 맞춘다
+    const base = BASE_BG[isDark ? "dark" : "light"];
+    const bg = base.map((c, i) => Math.round(c + (src[i] - c) * 0.45));
+    const accent = accentFor(src, bg, isDark);
+    root.style.setProperty("--green", `rgb(${accent.join(" ")})`);
+    const ink = [12, 26, 19];
+    root.style.setProperty("--green-ink", contrast(accent, [255, 255, 255]) >= contrast(accent, ink) ? "#ffffff" : "#0c1a13");
+  } else if (strengthPct === 0) {
     root.style.removeProperty("--green");
     root.style.removeProperty("--green-ink");
   } else {
@@ -115,11 +134,52 @@ export function applyBackgroundTint() {
     const ink = [12, 26, 19];
     root.style.setProperty("--green-ink", contrast(accent, [255, 255, 255]) >= contrast(accent, ink) ? "#ffffff" : "#0c1a13");
   }
-  syncTintSwatches(hex, strengthPct);
+  syncTintSwatches(hex, strengthPct, Boolean(photo));
+}
+
+/** 고른 사진을 줄여 JPEG로 만들고, 채도가 높은 픽셀에 무게를 둔 평균색을 뽑는다 */
+async function preparePhoto(file) {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+
+  const tiny = document.createElement("canvas");
+  tiny.width = tiny.height = 32;
+  const ctx = tiny.getContext("2d");
+  ctx.drawImage(bitmap, 0, 0, 32, 32);
+  const px = ctx.getImageData(0, 0, 32, 32).data;
+  // 색상(hue)을 12구간으로 나눠, 선명한 픽셀이 가장 많이 모인 구간의 평균색을 고른다.
+  // 그냥 평균내면 파랑+주황처럼 반대 색이 섞여 회색이 되기 때문.
+  const bins = Array.from({ length: 12 }, () => [0, 0, 0, 0]);
+  for (let i = 0; i < px.length; i += 4) {
+    const [hue, sat, light] = rgbToHsl([px[i], px[i + 1], px[i + 2]]);
+    const w = sat * (1 - Math.abs(2 * light - 1));
+    const bin = bins[Math.floor(hue / 30) % 12];
+    bin[0] += px[i] * w; bin[1] += px[i + 1] * w; bin[2] += px[i + 2] * w; bin[3] += w;
+  }
+  const best = bins.reduce((a, b) => (b[3] > a[3] ? b : a));
+  const color = best[3] > 0
+    ? "#" + best.slice(0, 3).map((v) => Math.round(v / best[3]).toString(16).padStart(2, "0")).join("")
+    : "#808080";
+  return { dataUrl, color };
+}
+
+function clearPhoto() {
+  localStorage.removeItem(BG_PHOTO_KEY);
+  localStorage.removeItem(BG_PHOTO_COLOR_KEY);
 }
 
 /** 설정의 색 버튼 중 지금 적용된 것을 눌린 상태로 */
-function syncTintSwatches(hex, strength) {
+function syncTintSwatches(hex, strength, photo = false) {
+  document.getElementById("btn-bg-photo-clear")?.toggleAttribute("hidden", !photo);
+  if (photo) {
+    document.querySelectorAll("[data-tint], .swatch--custom").forEach((sw) => sw.setAttribute("aria-pressed", "false"));
+    return;
+  }
   const none = strength === 0;
   let matched = none;
   document.querySelectorAll("[data-tint]").forEach((sw) => {
@@ -785,6 +845,7 @@ function resetHubAppearance() {
   localStorage.removeItem(USER_NAME_KEY);
   localStorage.setItem(BG_TINT_HEX_KEY, "#0f7d56");
   localStorage.setItem(BG_TINT_ALPHA_KEY, "0");
+  clearPhoto();
   const nameInput = document.getElementById("input-user-name");
   if (nameInput instanceof HTMLInputElement) nameInput.value = "";
   const tintColor = document.getElementById("input-bg-tint-color");
@@ -818,6 +879,7 @@ function resetEntireWorkspace() {
   localStorage.removeItem(USER_NAME_KEY);
   localStorage.setItem(BG_TINT_HEX_KEY, "#0f7d56");
   localStorage.setItem(BG_TINT_ALPHA_KEY, "0");
+  clearPhoto();
   const nameInput = document.getElementById("input-user-name");
   if (nameInput instanceof HTMLInputElement) nameInput.value = "";
   const tintColor = document.getElementById("input-bg-tint-color");
@@ -1373,6 +1435,7 @@ export function initHub(options) {
     sw.addEventListener("click", () => {
       if (!(tintColor instanceof HTMLInputElement) || !(tintAlpha instanceof HTMLInputElement)) return;
       const hex = sw.dataset.tint || "";
+      clearPhoto();
       if (hex) {
         tintColor.value = hex;
         if (tintAlpha.value === "0") tintAlpha.value = "22";
@@ -1383,10 +1446,31 @@ export function initHub(options) {
     }),
   );
   tintColor?.addEventListener("input", () => {
+    clearPhoto();
     if (tintAlpha instanceof HTMLInputElement && tintAlpha.value === "0") {
       tintAlpha.value = "22";
       localStorage.setItem(BG_TINT_ALPHA_KEY, "22");
     }
+    applyBackgroundTint();
+  });
+
+  const photoInput = document.getElementById("input-bg-photo");
+  photoInput?.addEventListener("change", async () => {
+    const file = photoInput instanceof HTMLInputElement ? photoInput.files?.[0] : null;
+    if (photoInput instanceof HTMLInputElement) photoInput.value = "";
+    if (!file) return;
+    try {
+      const { dataUrl, color } = await preparePhoto(file);
+      localStorage.setItem(BG_PHOTO_KEY, dataUrl);
+      localStorage.setItem(BG_PHOTO_COLOR_KEY, color);
+    } catch {
+      clearPhoto();
+      alert("사진을 저장하지 못했어요. 다른 사진으로 해보거나, 크기가 작은 사진을 골라주세요.");
+    }
+    applyBackgroundTint();
+  });
+  document.getElementById("btn-bg-photo-clear")?.addEventListener("click", () => {
+    clearPhoto();
     applyBackgroundTint();
   });
 
@@ -1455,30 +1539,30 @@ function initHubSettingsDock() {
   const closeBtn = document.getElementById("btn-hub-settings-close");
   if (!root || !panel || !toggle) return;
 
+  // hidden 대신 클래스로 열고 닫아야 오른쪽에서 밀려 나오는 전환이 보인다.
+  // 닫혀 있을 땐 inert라 키보드·스크린리더가 들어가지 않는다.
+  const isOpen = () => panel.classList.contains("is-open");
   /** @param {boolean} open */
   function setOpen(open) {
-    panel.hidden = !open;
+    panel.classList.toggle("is-open", open);
+    panel.inert = !open;
     toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) closeBtn?.focus({ preventScroll: true });
+    else if (panel.contains(document.activeElement)) toggle.focus({ preventScroll: true });
   }
 
   toggle.addEventListener("click", (e) => {
     e.stopPropagation();
-    setOpen(panel.hidden);
+    setOpen(!isOpen());
   });
   closeBtn?.addEventListener("click", () => setOpen(false));
-  document.querySelectorAll("[data-open-settings]").forEach((btn) =>
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      setOpen(true);
-    }),
-  );
 
   document.addEventListener("click", (e) => {
-    if (panel.hidden || !(e.target instanceof Node)) return;
+    if (!isOpen() || !(e.target instanceof Node)) return;
     if (!root.contains(e.target)) setOpen(false);
   });
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !panel.hidden) setOpen(false);
+    if (e.key === "Escape" && isOpen()) setOpen(false);
   });
 }
