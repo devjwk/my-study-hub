@@ -1096,38 +1096,128 @@ function renderReflect() {
   if (!entries.length) ul.innerHTML = `<li class="learning-empty">남긴 회고가 여기에 쌓여요.</li>`;
 }
 
+/** 카드 공부: 가운데 큰 카드(뒤집기·넘기기) + 아래 작은 카드 목록 */
+let cardIndex = 0;
+let cardFlipped = false;
+let cardBusy = false;
+
+const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function cardMotion(el, keyframes, ms) {
+  if (reducedMotion() || !el.animate) return Promise.resolve();
+  return el.animate(keyframes, { duration: ms, easing: "cubic-bezier(.22, 1, .36, 1)", fill: "forwards" }).finished.catch(() => {});
+}
+
+function showStudyCard(cards) {
+  const c = cards[cardIndex];
+  const main = document.getElementById("card-main");
+  if (!c || !main) return;
+  setText("card-front", c.front);
+  setText("card-back", c.back);
+  setText("card-count", `${cardIndex + 1} / ${cards.length}`);
+  main.classList.toggle("is-flipped", cardFlipped);
+  main.setAttribute("aria-label", cardFlipped ? `답: ${c.back}. 눌러서 질문 보기` : `질문: ${c.front}. 눌러서 답 보기`);
+  for (const id of ["card-prev", "card-next"]) {
+    const nav = document.getElementById(id);
+    if (nav instanceof HTMLButtonElement) nav.disabled = cards.length < 2;
+  }
+}
+
 function renderCards() {
   const grid = document.getElementById("grid-cards");
-  if (!grid) return;
+  const study = document.getElementById("card-study");
+  if (!grid || !study) return;
   const cards = loadCards();
-  grid.innerHTML = "";
-  for (const c of cards) {
-    const wrap = document.createElement("div");
-    wrap.className = "flash-card";
-    wrap.tabIndex = 0;
-    wrap.innerHTML = `
-      <div class="flash-card__inner">
-        <div class="flash-card__face flash-card__front"></div>
-        <div class="flash-card__face flash-card__back"></div>
-      </div>
-      <button type="button" class="btn btn--ghost btn--sm flash-card__del">지우기</button>
-    `;
-    wrap.querySelector(".flash-card__front").textContent = c.front;
-    wrap.querySelector(".flash-card__back").textContent = c.back;
-    wrap.addEventListener("click", (e) => {
-      if ((/** @type {HTMLElement} */ (e.target)).closest(".flash-card__del")) return;
-      wrap.classList.toggle("flash-card--flipped");
-    });
-    wrap.querySelector(".flash-card__del").addEventListener("click", (e) => {
-      e.stopPropagation();
+  cardIndex = Math.min(cardIndex, Math.max(0, cards.length - 1));
+  study.hidden = !cards.length;
+  showStudyCard(cards);
+
+  grid.replaceChildren();
+  cards.forEach((c, i) => {
+    const thumb = document.createElement("div");
+    thumb.className = "card-thumb";
+    const pick = document.createElement("button");
+    pick.type = "button";
+    pick.className = "card-thumb__pick";
+    pick.dataset.num = String(i + 1);
+    pick.setAttribute("aria-pressed", String(i === cardIndex));
+    const text = document.createElement("span");
+    text.textContent = c.front;
+    pick.append(text);
+    pick.addEventListener("click", () => goToCard(i, i > cardIndex ? 1 : -1));
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "card-thumb__del";
+    del.textContent = "지우기";
+    del.setAttribute("aria-label", `"${c.front}" 카드 지우기`);
+    del.addEventListener("click", () => {
       saveCards(loadCards().filter((x) => x.id !== c.id));
+      if (i < cardIndex) cardIndex -= 1;
+      cardFlipped = false;
       renderCards();
     });
-    grid.appendChild(wrap);
-  }
+    thumb.append(pick, del);
+    grid.append(thumb);
+  });
   if (!cards.length) {
-    grid.innerHTML = `<p class="learning-empty learning-empty--block">아직 카드가 없어요. 질문과 답을 적어서 하나 만들어 보세요.</p>`;
+    grid.innerHTML = `<p class="learning-empty learning-empty--block">아직 카드가 없어요. 위에서 질문과 답을 적어 하나 만들어 보세요.</p>`;
   }
+}
+
+/** 카드 넘기기: 옆으로 빠졌다가 반대쪽에서 들어온다. 넘길 땐 질문 면으로 돌아간다 */
+async function goToCard(target, dir) {
+  const cards = loadCards();
+  const main = document.getElementById("card-main");
+  if (!cards.length || !main || cardBusy) return;
+  target = (target + cards.length) % cards.length;
+  if (target === cardIndex) return;
+  cardBusy = true;
+  await cardMotion(main, [{ transform: "translateX(0)", opacity: 1 }, { transform: `translateX(${-dir * 64}px)`, opacity: 0 }], 170);
+  cardIndex = target;
+  cardFlipped = false;
+  main.classList.add("is-instant"); // 보이지 않는 동안 뒤집힘을 바로 되돌린다
+  renderCards();
+  void main.offsetWidth;
+  main.classList.remove("is-instant");
+  await cardMotion(main, [{ transform: `translateX(${dir * 64}px)`, opacity: 0 }, { transform: "translateX(0)", opacity: 1 }], 240);
+  cardBusy = false;
+}
+
+function flipCard() {
+  if (cardBusy) return;
+  cardFlipped = !cardFlipped;
+  showStudyCard(loadCards());
+}
+
+function initCardStudy() {
+  const main = document.getElementById("card-main");
+  if (!main) return;
+  let startX = null;
+  let swiped = false;
+  main.addEventListener("pointerdown", (e) => { startX = e.clientX; swiped = false; });
+  main.addEventListener("pointerup", (e) => {
+    if (startX === null) return;
+    const dx = e.clientX - startX;
+    startX = null;
+    if (Math.abs(dx) > 50) {
+      swiped = true;
+      goToCard(cardIndex + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1);
+    }
+  });
+  main.addEventListener("click", () => {
+    if (swiped) { swiped = false; return; }
+    flipCard();
+  });
+  document.getElementById("card-prev")?.addEventListener("click", () => goToCard(cardIndex - 1, -1));
+  document.getElementById("card-next")?.addEventListener("click", () => goToCard(cardIndex + 1, 1));
+  document.addEventListener("keydown", (e) => {
+    if (!document.getElementById("view-cards")?.classList.contains("view--active")) return;
+    const t = /** @type {HTMLElement} */ (e.target);
+    if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
+    if (e.key === "ArrowRight") { e.preventDefault(); goToCard(cardIndex + 1, 1); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); goToCard(cardIndex - 1, -1); }
+    else if (e.key === " " && t?.tagName !== "BUTTON") { e.preventDefault(); flipCard(); }
+  });
 }
 
 function todayWorkMinutes() {
@@ -1573,6 +1663,8 @@ export function initHub(options) {
     const cards = loadCards();
     cards.push({ id: uid(), front, back });
     saveCards(cards);
+    cardIndex = cards.length - 1; // 방금 만든 카드를 가운데로
+    cardFlipped = false;
     if (f instanceof HTMLInputElement) f.value = "";
     if (b instanceof HTMLInputElement) b.value = "";
     renderCards();
@@ -1584,6 +1676,7 @@ export function initHub(options) {
     renderHabitView();
   });
 
+  initCardStudy();
   initDataResetControls();
   initHubSettingsDock();
 }

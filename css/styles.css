@@ -280,7 +280,7 @@ body:not(:has(#view-home.view--active)) .hub-bar__date { visibility: hidden; }
 .task__actions .btn { padding: .55rem .8rem; font-size: 14px; }
 .task__actions .btn--secondary { background: var(--ink); color: var(--bg); }
 .task__actions .btn--secondary:hover { background: var(--green); color: var(--green-ink); }
-.task__actions .btn--ghost, .learning-row__actions .btn--ghost, .flash-card__del { background: transparent; color: var(--sub); }
+.task__actions .btn--ghost, .learning-row__actions .btn--ghost { background: transparent; color: var(--sub); }
 .task__actions .btn--ghost:hover, .learning-row__actions .btn--ghost:hover { background: var(--surface-2); color: var(--ink); }
 @media (max-width: 600px) { .task { flex-wrap: wrap; } .task__actions { width: 100%; justify-content: flex-start; padding-left: calc(22px + 1rem); } }
 
@@ -409,19 +409,56 @@ body[data-room="studio"] { --room-art: url("../assets/studio.svg"); }
 .learning-panel__body { margin-top: .2rem; white-space: pre-wrap; }
 
 /* 카드 */
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 4px; }
-.flash-card { position: relative; background: var(--surface); min-height: 10rem; padding: 1.3rem 1.2rem 2.6rem; cursor: pointer; transition: background .15s; }
-.flash-card:hover { background: var(--surface-2); }
-.flash-card--flipped { background: var(--ink); color: var(--bg); }
-.flash-card--flipped:hover { background: var(--ink); }
-.flash-card__face { font-size: 17px; font-weight: 500; line-height: 1.45; }
-.flash-card__back, .flash-card--flipped .flash-card__front { display: none; }
-.flash-card--flipped .flash-card__back { display: block; }
-.flash-card::after { content: "눌러서 답 보기"; position: absolute; left: 1.2rem; bottom: 1rem; font-size: 13px; color: var(--sub); }
-.flash-card--flipped::after { content: "답"; color: inherit; opacity: .7; }
-.flash-card__del { position: absolute; right: .4rem; bottom: .4rem; font-size: 13px; padding: .4rem .6rem; opacity: 0; }
-.flash-card:hover .flash-card__del, .flash-card:focus-within .flash-card__del { opacity: 1; }
-.flash-card--flipped .flash-card__del { color: inherit; }
+/* 카드 공부 — 가운데 큰 카드는 3D로 뒤집히고, 넘길 땐 옆으로 빠졌다 들어온다 */
+.study { display: grid; justify-items: center; gap: .9rem; padding: .6rem 0 .4rem; }
+.study__count { font: 400 1.5rem / 1 var(--num); color: var(--sub); font-variant-numeric: tabular-nums; }
+.study__stage { display: flex; align-items: center; justify-content: center; gap: 1rem; width: 100%; }
+.study__nav { flex: none; width: 48px; height: 48px; border: 0; background: var(--surface); color: var(--ink); font-size: 20px; cursor: pointer; transition: background .15s, color .15s; }
+.study__nav:hover:not(:disabled) { background: var(--ink); color: var(--bg); }
+.study__nav:disabled { opacity: .35; cursor: default; }
+.study__card { width: min(100%, 38rem); aspect-ratio: 5 / 3; border: 0; padding: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; perspective: 1400px; touch-action: pan-y; }
+.study__inner { position: relative; display: block; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .55s cubic-bezier(.22, 1, .36, 1); }
+.study__card.is-flipped .study__inner { transform: rotateY(180deg); }
+.study__card.is-instant .study__inner { transition: none; }
+.study__face {
+  position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; gap: .9rem;
+  padding: 2rem 2.4rem; overflow: auto; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  background: var(--surface); box-shadow: 0 30px 60px -38px rgb(0 0 0 / .4);
+  font-size: clamp(1.25rem, 2.4vw, 1.75rem); font-weight: 600; line-height: 1.4; letter-spacing: -.02em;
+}
+.study__face small { font-size: 13px; font-weight: 500; letter-spacing: 0; color: var(--sub); }
+.study__face--back { transform: rotateY(180deg); background: var(--ink); color: var(--bg); }
+.study__face--back small { color: inherit; opacity: .7; }
+.study__card:hover .study__face--front { background: var(--surface-2); }
+.study__hint { text-align: center; }
+.hint--touch { display: none; }
+@media (hover: none) and (pointer: coarse) { .hint--keys { display: none; } .hint--touch { display: inline; } }
+.study + .section-title { margin-top: 2.4rem; }
+@media (prefers-reduced-motion: reduce) { .study__inner { transition: none; } }
+@media (max-width: 600px) {
+  .study__stage { gap: .4rem; }
+  .study__nav { width: 36px; height: 36px; font-size: 16px; }
+  .study__card { aspect-ratio: 4 / 3; }
+  .study__face { padding: 1.4rem 1.3rem; }
+}
+
+/* 아래 작은 카드 목록 — 눌러서 가운데로 */
+.card-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr)); gap: 6px; }
+.card-thumb { position: relative; }
+.card-thumb__pick {
+  display: block; width: 100%; height: 7rem; border: 0; padding: 1.7rem .9rem .8rem; text-align: left; cursor: pointer;
+  background: var(--surface); color: var(--ink); font-size: 14px; font-weight: 500; line-height: 1.45;
+  transition: background .15s, transform .15s;
+}
+.card-thumb__pick span { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.card-thumb__pick::before { content: attr(data-num); position: absolute; left: .9rem; top: .6rem; font: 400 1rem / 1 var(--num); color: var(--sub); }
+.card-thumb__pick:hover { background: var(--surface-2); transform: translateY(-2px); }
+.card-thumb__pick[aria-pressed="true"] { background: var(--surface-2); box-shadow: inset 0 0 0 2px var(--green); }
+.card-thumb__pick[aria-pressed="true"]::before { color: var(--green); }
+.card-thumb__del { position: absolute; right: 4px; top: 4px; border: 0; background: none; color: var(--sub); font-size: 12px; padding: .3rem .45rem; cursor: pointer; opacity: 0; }
+.card-thumb:hover .card-thumb__del, .card-thumb:focus-within .card-thumb__del { opacity: 1; }
+.card-thumb__del:hover { color: var(--warn); }
+@media (hover: none) { .card-thumb__del { opacity: 1; } }
 .learning-empty--block { grid-column: 1 / -1; }
 
 /* 습관 */
