@@ -77,6 +77,14 @@
                   <input type="color" id="input-bg-tint-color" value="#0f7d56" aria-label="직접 고르기" />
                 </label>
               </div>
+              <div class="row">
+                <label class="btn btn--line btn--sm btn--file">
+                  사진을 배경으로
+                  <input type="file" id="input-bg-photo" accept="image/*" hidden />
+                </label>
+                <button type="button" class="btn btn--text btn--sm" id="btn-bg-photo-clear" hidden>사진 빼기</button>
+              </div>
+              <p class="hint">사진은 이 브라우저에만 저장되고, 사진 색에 맞춰 강조색도 바뀌어요. 위의 색을 누르면 사진은 빠져요.</p>
               <label class="tint-strength">진하기
                 <input type="range" id="input-bg-tint-alpha" min="0" max="40" value="0" aria-label="배경 색 진하기" />
               </label>

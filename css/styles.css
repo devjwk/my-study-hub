@@ -385,3 +385,43 @@ body[data-room="studio"] { --room-art: url("../assets/studio.svg"); }
 .modal .compose__fields { grid-template-columns: 1fr 1fr; }
 .modal__actions { display: flex; justify-content: flex-end; gap: 4px; margin-top: .4rem; }
 .immersed #unlink-task { display: none; }
+
+/* ── 사진 배경 ──────────────────────────
+   사진은 흐리게 한 번만 깔고(무거운 backdrop-filter 없이), 그 위에 테마 바탕색 막을 덮는다.
+   화면 구역은 반투명 판으로 띄운다. 모서리는 직각 그대로. */
+html[data-photo] { background: var(--base); }
+html[data-photo] body { background: transparent; }
+html[data-photo] body::before,
+html[data-photo] body::after { content: ""; position: fixed; inset: 0; pointer-events: none; }
+html[data-photo] body::before { z-index: -2; background: var(--photo) center / cover; filter: blur(28px) saturate(1.15); transform: scale(1.12); }
+html[data-photo] body::after { z-index: -1; background: color-mix(in srgb, var(--base) 55%, transparent); }
+html[data-photo] {
+  --surface: color-mix(in srgb, var(--ink) 7%, transparent);
+  --surface-2: color-mix(in srgb, var(--ink) 12%, transparent);
+  --pane: color-mix(in srgb, var(--base) 58%, transparent);
+  --pane-edge: inset 0 0 0 1px color-mix(in srgb, #fff 16%, transparent), 0 24px 60px -32px rgb(0 0 0 / .45);
+}
+html[data-photo] .tint-strength { display: none; }
+/* 홈: 구역마다 판 하나씩 */
+html[data-photo] #view-home .hero,
+html[data-photo] #view-home .apps,
+html[data-photo] #view-home .contrib-wrap,
+html[data-photo] #view-home .split > section { background: var(--pane); box-shadow: var(--pane-edge); padding: 28px; }
+html[data-photo] #view-home .hero { margin-top: 1rem; }
+html[data-photo] #view-home .apps,
+html[data-photo] #view-home .contrib-wrap { margin-top: 12px; }
+html[data-photo] #view-home .split { gap: 12px; margin-top: 12px; }
+html[data-photo] #view-home .contrib-wrap .section-title,
+html[data-photo] #view-home .split .section-title { margin-top: 0; }
+/* 나머지 화면: 화면 전체가 판 하나 */
+html[data-photo] .view--active:not(#view-home):not(.immersed) { background: var(--pane); box-shadow: var(--pane-edge); padding: 8px 32px 32px; margin-top: .5rem; }
+@media (max-width: 600px) {
+  html[data-photo] #view-home .hero, html[data-photo] #view-home .apps, html[data-photo] #view-home .contrib-wrap,
+  html[data-photo] #view-home .split > section { padding: 20px 16px; }
+  html[data-photo] .view--active:not(#view-home):not(.immersed) { padding: 4px 16px 24px; }
+}
+html[data-photo] .hub-settings__panel { background: color-mix(in srgb, var(--base) 92%, transparent); }
+/* 화면 가득 집중: 고른 사진을 선명하게 */
+html[data-photo] #view-focus.immersed { background: linear-gradient(90deg, #0f1b20e6, #0f1b20b3 45%, #0f1b2040), var(--photo) center / cover; }
+html[data-photo] .room-tools label { display: none; }
+@media (max-width: 600px) { .app__sub { white-space: normal; } }
