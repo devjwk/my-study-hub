@@ -374,12 +374,17 @@
               <p class="study__count" id="card-count" aria-live="polite"></p>
               <div class="study__stage">
                 <button type="button" class="study__nav" id="card-prev" aria-label="이전 카드">←</button>
-                <button type="button" class="study__card" id="card-main">
-                  <span class="study__inner">
-                    <span class="study__face study__face--front"><small>질문</small><span id="card-front"></span></span>
-                    <span class="study__face study__face--back"><small>답</small><span id="card-back"></span></span>
-                  </span>
-                </button>
+                <div class="study__deck" id="card-deck">
+                  <span class="study__sheet" aria-hidden="true"></span>
+                  <span class="study__sheet" aria-hidden="true"></span>
+                  <span class="study__sheet" aria-hidden="true"></span>
+                  <button type="button" class="study__card" id="card-main">
+                    <span class="study__inner">
+                      <span class="study__face study__face--front"><small>질문</small><span id="card-front"></span></span>
+                      <span class="study__face study__face--back"><small>답</small><span id="card-back"></span></span>
+                    </span>
+                  </button>
+                </div>
                 <button type="button" class="study__nav" id="card-next" aria-label="다음 카드">→</button>
               </div>
               <p class="hint study__hint"><span class="hint--keys">카드를 누르거나 Space로 뒤집기 · ← → 로 넘기기</span><span class="hint--touch">눌러서 뒤집고, 옆으로 밀어서 넘겨요</span></p>

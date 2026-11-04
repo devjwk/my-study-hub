@@ -1103,9 +1103,48 @@ let cardBusy = false;
 
 const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-function cardMotion(el, keyframes, ms) {
-  if (reducedMotion() || !el.animate) return Promise.resolve();
-  return el.animate(keyframes, { duration: ms, easing: "cubic-bezier(.22, 1, .36, 1)", fill: "forwards" }).finished.catch(() => {});
+const SAMPLE_CARDS = [
+  ["TCP 연결은 어떤 순서로 맺어질까요?", "SYN → SYN-ACK → ACK (3-way handshake)"],
+  ["캐시가 기대는 지역성 두 가지는?", "시간 지역성(방금 쓴 걸 또 씀)과 공간 지역성(가까운 걸 곧 씀)"],
+  ["정렬된 배열에서 이진 탐색의 시간 복잡도는?", "O(log n)"],
+  ["스택과 큐는 무엇이 다를까요?", "스택은 나중에 넣은 걸 먼저(LIFO), 큐는 먼저 넣은 걸 먼저(FIFO) 꺼내요."],
+];
+
+/** 카드 한 장이 오른쪽 아래 모서리부터 들려 왼쪽 위로 넘어가는 동작 (out), 또는 그 반대로 덮이는 동작 (in) */
+const PEEL = [
+  { transform: "translate(0, 0) rotate3d(1, -1, 0, 0deg)", offset: 0 },
+  { transform: "translate(-3%, -3%) rotate3d(1, -1, 0, 55deg)", offset: 0.4 },
+  { transform: "translate(-30%, -30%) rotate3d(1, -1, 0, 140deg)", offset: 0.78 },
+  { transform: "translate(-55%, -55%) rotate3d(1, -1, 0, 180deg)", offset: 1 },
+];
+// 투명도는 카드 전체가 아니라 앞·뒷면에 따로 준다. 3D 요소 자체에 opacity를 주면
+// 브라우저가 평면으로 합쳐 그려서 뒷면에 앞면 글자가 거울처럼 비친다
+const PEEL_FADE = [{ opacity: 1, offset: 0 }, { opacity: 1, offset: 0.6 }, { opacity: 0, offset: 1 }];
+
+/** 위에 복제 카드를 띄워 넘긴다. 진짜 카드를 돌리면 뒷면의 답이 비쳐서 복제본을 쓴다 */
+function peelCard(card, showAnswer, mode) {
+  const deck = document.getElementById("card-deck");
+  if (!deck) return Promise.resolve();
+  const peel = document.createElement("div");
+  peel.className = "peel";
+  peel.setAttribute("aria-hidden", "true");
+  const front = document.createElement("div");
+  front.className = `peel__front study__face${showAnswer ? " study__face--back-look" : ""}`;
+  const label = document.createElement("small");
+  label.textContent = showAnswer ? "답" : "질문";
+  const text = document.createElement("span");
+  text.textContent = showAnswer ? card.back : card.front;
+  front.append(label, text);
+  const back = document.createElement("div");
+  back.className = "peel__back";
+  peel.append(front, back);
+  deck.append(peel);
+  // 되감기는 순서만 뒤집으면 offset이 1→0으로 거꾸로 돼서 animate()가 거부한다. offset도 뒤집는다
+  const flip = (frames) => (mode === "out" ? frames : frames.map((k) => ({ ...k, offset: 1 - k.offset })).reverse());
+  const timing = { duration: 720, easing: "cubic-bezier(.45, .05, .25, 1)", fill: "forwards" };
+  const fades = [front, back].map((el) => el.animate(flip(PEEL_FADE), timing).finished);
+  const turn = peel.animate(flip(PEEL), timing).finished;
+  return Promise.all([turn, ...fades]).catch(() => {}).then(() => peel);
 }
 
 function showStudyCard(cards) {
@@ -1130,6 +1169,8 @@ function renderCards() {
   const cards = loadCards();
   cardIndex = Math.min(cardIndex, Math.max(0, cards.length - 1));
   study.hidden = !cards.length;
+  const deck = document.getElementById("card-deck");
+  if (deck) deck.dataset.depth = String(Math.min(3, Math.max(0, cards.length - 1)));
   showStudyCard(cards);
 
   grid.replaceChildren();
@@ -1160,27 +1201,52 @@ function renderCards() {
     grid.append(thumb);
   });
   if (!cards.length) {
-    grid.innerHTML = `<p class="learning-empty learning-empty--block">아직 카드가 없어요. 위에서 질문과 답을 적어 하나 만들어 보세요.</p>`;
+    grid.innerHTML = `<div class="learning-empty learning-empty--block"><p>아직 카드가 없어요. 위에서 질문과 답을 적어 하나 만들거나, 예시로 먼저 넘겨보세요.</p><button type="button" class="btn btn--line btn--sm" id="btn-sample-cards">예시 카드 4장 넣기</button></div>`;
+    document.getElementById("btn-sample-cards")?.addEventListener("click", () => {
+      saveCards(SAMPLE_CARDS.map(([front, back]) => ({ id: uid(), front, back })));
+      cardIndex = 0;
+      cardFlipped = false;
+      renderCards();
+    });
   }
 }
 
-/** 카드 넘기기: 옆으로 빠졌다가 반대쪽에서 들어온다. 넘길 땐 질문 면으로 돌아간다 */
+/**
+ * 카드 넘기기. 다음: 맨 위 장이 오른쪽 아래부터 들려 왼쪽 위로 넘어가고 밑의 장이 드러난다.
+ * 이전: 넘어갔던 장이 왼쪽 위에서 넘어와 다시 덮는다. 넘기면 질문 면으로 돌아간다.
+ */
 async function goToCard(target, dir) {
   const cards = loadCards();
   const main = document.getElementById("card-main");
   if (!cards.length || !main || cardBusy) return;
   target = (target + cards.length) % cards.length;
   if (target === cardIndex) return;
+  const swap = () => {
+    cardIndex = target;
+    cardFlipped = false;
+    main.classList.add("is-instant"); // 뒤집힌 상태를 애니메이션 없이 되돌린다
+    renderCards();
+    void main.offsetWidth;
+    main.classList.remove("is-instant");
+  };
+  if (reducedMotion() || !main.animate) { swap(); return; }
   cardBusy = true;
-  await cardMotion(main, [{ transform: "translateX(0)", opacity: 1 }, { transform: `translateX(${-dir * 64}px)`, opacity: 0 }], 170);
-  cardIndex = target;
-  cardFlipped = false;
-  main.classList.add("is-instant"); // 보이지 않는 동안 뒤집힘을 바로 되돌린다
-  renderCards();
-  void main.offsetWidth;
-  main.classList.remove("is-instant");
-  await cardMotion(main, [{ transform: `translateX(${dir * 64}px)`, opacity: 0 }, { transform: "translateX(0)", opacity: 1 }], 240);
-  cardBusy = false;
+  try {
+    if (dir > 0) {
+      const leaving = cards[cardIndex];
+      const wasFlipped = cardFlipped;
+      swap(); // 밑에 다음 장을 먼저 깔아 두고
+      await peelCard(leaving, wasFlipped, "out");
+    } else {
+      await peelCard(cards[target], false, "in");
+      swap(); // 덮이고 난 뒤 내용을 바꾼다
+    }
+  } finally {
+    // 중간에 실패해도 넘기기가 잠긴 채로 남지 않게
+    document.querySelectorAll("#card-deck .peel").forEach((el) => el.remove());
+    if (cardIndex !== target) swap();
+    cardBusy = false;
+  }
 }
 
 function flipCard() {

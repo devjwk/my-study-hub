@@ -416,18 +416,35 @@ body[data-room="studio"] { --room-art: url("../assets/studio.svg"); }
 .study__nav { flex: none; width: 48px; height: 48px; border: 0; background: var(--surface); color: var(--ink); font-size: 20px; cursor: pointer; transition: background .15s, color .15s; }
 .study__nav:hover:not(:disabled) { background: var(--ink); color: var(--bg); }
 .study__nav:disabled { opacity: .35; cursor: default; }
-.study__card { width: min(100%, 38rem); aspect-ratio: 5 / 3; border: 0; padding: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; perspective: 1400px; touch-action: pan-y; }
+/* 카드 세트: 맨 위 장 밑으로 다음 장들이 오른쪽 아래로 살짝 비친다 */
+.study__deck { position: relative; width: min(100%, 50rem); aspect-ratio: 16 / 10; perspective: 1800px; margin: 0 22px 22px 0; }
+.study__sheet { position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 10%, transparent), 0 18px 40px -30px rgb(0 0 0 / .45); }
+/* 밑으로 갈수록 조금씩 진하게 해서 몇 장 쌓였는지 보이게 */
+.study__sheet:nth-of-type(1) { transform: translate(21px, 21px); background: color-mix(in srgb, var(--surface-solid, var(--surface)), var(--ink) 12%); }
+.study__sheet:nth-of-type(2) { transform: translate(14px, 14px); background: color-mix(in srgb, var(--surface-solid, var(--surface)), var(--ink) 8%); }
+.study__sheet:nth-of-type(3) { transform: translate(7px, 7px); background: color-mix(in srgb, var(--surface-solid, var(--surface)), var(--ink) 4%); }
+.study__deck[data-depth="0"] .study__sheet,
+.study__deck[data-depth="1"] .study__sheet:nth-of-type(-n+2),
+.study__deck[data-depth="2"] .study__sheet:nth-of-type(1) { display: none; }
+.study__card { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; padding: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; perspective: 1600px; touch-action: pan-y; }
 .study__inner { position: relative; display: block; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .55s cubic-bezier(.22, 1, .36, 1); }
 .study__card.is-flipped .study__inner { transform: rotateY(180deg); }
 .study__card.is-instant .study__inner { transition: none; }
 .study__face {
   position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; gap: .9rem;
-  padding: 2rem 2.4rem; overflow: auto; backface-visibility: hidden; -webkit-backface-visibility: hidden;
-  background: var(--surface); box-shadow: 0 30px 60px -38px rgb(0 0 0 / .4);
-  font-size: clamp(1.25rem, 2.4vw, 1.75rem); font-weight: 600; line-height: 1.4; letter-spacing: -.02em;
+  padding: 2.6rem 3rem; overflow: auto; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  background: var(--surface-solid, var(--surface)); box-shadow: 0 30px 60px -38px rgb(0 0 0 / .45);
+  font-size: clamp(1.4rem, 2.8vw, 2.2rem); font-weight: 600; line-height: 1.4; letter-spacing: -.02em;
 }
 .study__face small { font-size: 13px; font-weight: 500; letter-spacing: 0; color: var(--sub); }
-.study__face--back { transform: rotateY(180deg); background: var(--ink); color: var(--bg); }
+.study__face--back, .study__face--back-look { background: var(--ink); color: var(--bg); }
+.study__face--back { transform: rotateY(180deg); }
+.study__face--back-look small { color: inherit; opacity: .7; }
+
+/* 넘어가는 복제 카드: 앞면은 지금 카드, 뒷면은 빈 종이. 오른쪽 아래가 먼저 들리도록 대각선 축으로 돈다 */
+.peel { position: absolute; inset: 0; z-index: 5; transform-style: preserve-3d; pointer-events: none; }
+.peel__front { position: absolute; inset: 0; }
+.peel__back { position: absolute; inset: 0; background: var(--surface-solid, var(--surface-2)); transform: rotate3d(1, -1, 0, 180deg); backface-visibility: hidden; -webkit-backface-visibility: hidden; box-shadow: inset 0 0 60px rgb(0 0 0 / .08); }
 .study__face--back small { color: inherit; opacity: .7; }
 .study__card:hover .study__face--front { background: var(--surface-2); }
 .study__hint { text-align: center; }
@@ -438,8 +455,11 @@ body[data-room="studio"] { --room-art: url("../assets/studio.svg"); }
 @media (max-width: 600px) {
   .study__stage { gap: .4rem; }
   .study__nav { width: 36px; height: 36px; font-size: 16px; }
-  .study__card { aspect-ratio: 4 / 3; }
-  .study__face { padding: 1.4rem 1.3rem; }
+  .study__deck { aspect-ratio: 4 / 3; margin: 0 12px 12px 0; }
+  .study__sheet:nth-of-type(1) { transform: translate(12px, 12px); }
+  .study__sheet:nth-of-type(2) { transform: translate(8px, 8px); }
+  .study__sheet:nth-of-type(3) { transform: translate(4px, 4px); }
+  .study__face { padding: 1.4rem 1.3rem; font-size: 1.3rem; }
 }
 
 /* 아래 작은 카드 목록 — 눌러서 가운데로 */
@@ -459,7 +479,7 @@ body[data-room="studio"] { --room-art: url("../assets/studio.svg"); }
 .card-thumb:hover .card-thumb__del, .card-thumb:focus-within .card-thumb__del { opacity: 1; }
 .card-thumb__del:hover { color: var(--warn); }
 @media (hover: none) { .card-thumb__del { opacity: 1; } }
-.learning-empty--block { grid-column: 1 / -1; }
+.learning-empty--block { grid-column: 1 / -1; display: grid; justify-items: start; gap: .7rem; }
 
 /* 습관 */
 #habit-extra strong { color: var(--green); font-weight: 600; }
@@ -489,6 +509,7 @@ html[data-photo] {
   --pane-edge: inset 0 0 0 1px color-mix(in srgb, #fff 16%, transparent), 0 24px 60px -32px rgb(0 0 0 / .45);
 }
 html[data-photo] .tint-strength { display: none; }
+html[data-photo] .study__deck { --surface-solid: color-mix(in srgb, var(--base) 88%, var(--ink)); }
 /* 모든 화면: 구역(.pane)마다 판 하나씩 띄운다 */
 html[data-photo] .pane { background: var(--pane); box-shadow: var(--pane-edge); padding: 28px; }
 html[data-photo] .view--active > .pane,
