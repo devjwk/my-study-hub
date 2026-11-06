@@ -12,6 +12,8 @@ const DAILY_GOAL_KEY = "hub-daily-goal";
 const ACTIVITY_KEY = "learning-activity-v1";
 const BG_PHOTO_KEY = "hub-bg-photo";
 const BG_PHOTO_COLOR_KEY = "hub-bg-photo-color";
+/** 처음 쓰는 사람에게 깔리는 기본 배경 (Herry Sutanto, Unsplash 라이선스). color는 preparePhoto와 같은 방식으로 미리 뽑은 값 */
+const DEFAULT_PHOTO = { path: "assets/bg-evening-library.jpg", color: "#973a0c" };
 
 /** Netlify 등 배포 후 전체 백업·복원(app.js)에서 사용 */
 export const HUB_STORAGE_KEYS = [
@@ -93,8 +95,12 @@ export function applyBackgroundTint() {
   const b = parseInt(h.slice(4, 6), 16);
   if ([r, g, b].some((x) => Number.isNaN(x))) return;
   const root = document.documentElement;
-  const photo = localStorage.getItem(BG_PHOTO_KEY);
+  // 사진: 직접 고른 사진 > (아무것도 고른 적 없으면) 기본 저녁 도서관 사진 > 없음("none" 또는 색을 고른 경우)
+  const stored = localStorage.getItem(BG_PHOTO_KEY);
+  const usingDefault = stored === null && strengthPct === 0;
+  const photo = stored && stored !== "none" ? stored : usingDefault ? new URL(DEFAULT_PHOTO.path, document.baseURI).href : null;
   root.toggleAttribute("data-photo", Boolean(photo));
+  document.getElementById("btn-bg-photo-default")?.toggleAttribute("hidden", usingDefault);
   if (photo) root.style.setProperty("--photo", `url("${photo}")`);
   else root.style.removeProperty("--photo");
   let mix = Math.min(42, Math.max(0, strengthPct * 0.95));
@@ -112,8 +118,9 @@ export function applyBackgroundTint() {
   root.style.setProperty("--bg-tint-mix-corner", `${corner.toFixed(1)}%`);
 
   // 대표색: 사진이 있으면 사진 색, 기본(진하기 0)이면 테마 기본 녹색, 아니면 고른 색에서 계산
-  const photoColor = photo && /^#[0-9a-f]{6}$/i.test(localStorage.getItem(BG_PHOTO_COLOR_KEY) || "")
-    ? localStorage.getItem(BG_PHOTO_COLOR_KEY) : null;
+  const savedColor = localStorage.getItem(BG_PHOTO_COLOR_KEY) || "";
+  const photoColor = usingDefault ? DEFAULT_PHOTO.color
+    : photo && /^#[0-9a-f]{6}$/i.test(savedColor) ? savedColor : null;
   if (photoColor) {
     const src = [1, 3, 5].map((i) => parseInt(photoColor.slice(i, i + 2), 16));
     // 사진 위 막(테마 바탕 55%)을 지난 실제 배경을 기준으로 대비를 맞춘다
@@ -168,7 +175,14 @@ async function preparePhoto(file) {
   return { dataUrl, color };
 }
 
+/** 사진 끄기: 기본 사진도 다시 깔리지 않게 "none"으로 남긴다 */
 function clearPhoto() {
+  localStorage.setItem(BG_PHOTO_KEY, "none");
+  localStorage.removeItem(BG_PHOTO_COLOR_KEY);
+}
+
+/** 처음 상태로: 기본 저녁 도서관 사진이 다시 깔린다 */
+function resetPhoto() {
   localStorage.removeItem(BG_PHOTO_KEY);
   localStorage.removeItem(BG_PHOTO_COLOR_KEY);
 }
@@ -893,7 +907,7 @@ function resetHubAppearance() {
   localStorage.removeItem(USER_NAME_KEY);
   localStorage.setItem(BG_TINT_HEX_KEY, "#0f7d56");
   localStorage.setItem(BG_TINT_ALPHA_KEY, "0");
-  clearPhoto();
+  resetPhoto();
   const nameInput = document.getElementById("input-user-name");
   if (nameInput instanceof HTMLInputElement) nameInput.value = "";
   const tintColor = document.getElementById("input-bg-tint-color");
@@ -927,7 +941,7 @@ function resetEntireWorkspace() {
   localStorage.removeItem(USER_NAME_KEY);
   localStorage.setItem(BG_TINT_HEX_KEY, "#0f7d56");
   localStorage.setItem(BG_TINT_ALPHA_KEY, "0");
-  clearPhoto();
+  resetPhoto();
   const nameInput = document.getElementById("input-user-name");
   if (nameInput instanceof HTMLInputElement) nameInput.value = "";
   const tintColor = document.getElementById("input-bg-tint-color");
@@ -1096,38 +1110,194 @@ function renderReflect() {
   if (!entries.length) ul.innerHTML = `<li class="learning-empty">남긴 회고가 여기에 쌓여요.</li>`;
 }
 
+/** 카드 공부: 가운데 큰 카드(뒤집기·넘기기) + 아래 작은 카드 목록 */
+let cardIndex = 0;
+let cardFlipped = false;
+let cardBusy = false;
+
+const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const SAMPLE_CARDS = [
+  ["TCP 연결은 어떤 순서로 맺어질까요?", "SYN → SYN-ACK → ACK (3-way handshake)"],
+  ["캐시가 기대는 지역성 두 가지는?", "시간 지역성(방금 쓴 걸 또 씀)과 공간 지역성(가까운 걸 곧 씀)"],
+  ["정렬된 배열에서 이진 탐색의 시간 복잡도는?", "O(log n)"],
+  ["스택과 큐는 무엇이 다를까요?", "스택은 나중에 넣은 걸 먼저(LIFO), 큐는 먼저 넣은 걸 먼저(FIFO) 꺼내요."],
+];
+
+/** 카드 한 장이 오른쪽 아래 모서리부터 들려 왼쪽 위로 넘어가는 동작 (out), 또는 그 반대로 덮이는 동작 (in) */
+const PEEL = [
+  { transform: "translate(0, 0) rotate3d(1, -1, 0, 0deg)", offset: 0 },
+  { transform: "translate(-3%, -3%) rotate3d(1, -1, 0, 55deg)", offset: 0.4 },
+  { transform: "translate(-30%, -30%) rotate3d(1, -1, 0, 140deg)", offset: 0.78 },
+  { transform: "translate(-55%, -55%) rotate3d(1, -1, 0, 180deg)", offset: 1 },
+];
+// 투명도는 카드 전체가 아니라 앞·뒷면에 따로 준다. 3D 요소 자체에 opacity를 주면
+// 브라우저가 평면으로 합쳐 그려서 뒷면에 앞면 글자가 거울처럼 비친다
+const PEEL_FADE = [{ opacity: 1, offset: 0 }, { opacity: 1, offset: 0.6 }, { opacity: 0, offset: 1 }];
+
+/** 위에 복제 카드를 띄워 넘긴다. 진짜 카드를 돌리면 뒷면의 답이 비쳐서 복제본을 쓴다 */
+function peelCard(card, showAnswer, mode) {
+  const deck = document.getElementById("card-deck");
+  if (!deck) return Promise.resolve();
+  const peel = document.createElement("div");
+  peel.className = "peel";
+  peel.setAttribute("aria-hidden", "true");
+  const front = document.createElement("div");
+  front.className = `peel__front study__face${showAnswer ? " study__face--back-look" : ""}`;
+  const label = document.createElement("small");
+  label.textContent = showAnswer ? "답" : "질문";
+  const text = document.createElement("span");
+  text.textContent = showAnswer ? card.back : card.front;
+  front.append(label, text);
+  const back = document.createElement("div");
+  back.className = "peel__back";
+  peel.append(front, back);
+  deck.append(peel);
+  // 되감기는 순서만 뒤집으면 offset이 1→0으로 거꾸로 돼서 animate()가 거부한다. offset도 뒤집는다
+  const flip = (frames) => (mode === "out" ? frames : frames.map((k) => ({ ...k, offset: 1 - k.offset })).reverse());
+  const timing = { duration: 720, easing: "cubic-bezier(.45, .05, .25, 1)", fill: "forwards" };
+  const fades = [front, back].map((el) => el.animate(flip(PEEL_FADE), timing).finished);
+  const turn = peel.animate(flip(PEEL), timing).finished;
+  return Promise.all([turn, ...fades]).catch(() => {}).then(() => peel);
+}
+
+function showStudyCard(cards) {
+  const c = cards[cardIndex];
+  const main = document.getElementById("card-main");
+  if (!c || !main) return;
+  setText("card-front", c.front);
+  setText("card-back", c.back);
+  setText("card-count", `${cardIndex + 1} / ${cards.length}`);
+  main.classList.toggle("is-flipped", cardFlipped);
+  main.setAttribute("aria-label", cardFlipped ? `답: ${c.back}. 눌러서 질문 보기` : `질문: ${c.front}. 눌러서 답 보기`);
+  for (const id of ["card-prev", "card-next"]) {
+    const nav = document.getElementById(id);
+    if (nav instanceof HTMLButtonElement) nav.disabled = cards.length < 2;
+  }
+}
+
 function renderCards() {
   const grid = document.getElementById("grid-cards");
-  if (!grid) return;
+  const study = document.getElementById("card-study");
+  if (!grid || !study) return;
   const cards = loadCards();
-  grid.innerHTML = "";
-  for (const c of cards) {
-    const wrap = document.createElement("div");
-    wrap.className = "flash-card";
-    wrap.tabIndex = 0;
-    wrap.innerHTML = `
-      <div class="flash-card__inner">
-        <div class="flash-card__face flash-card__front"></div>
-        <div class="flash-card__face flash-card__back"></div>
-      </div>
-      <button type="button" class="btn btn--ghost btn--sm flash-card__del">지우기</button>
-    `;
-    wrap.querySelector(".flash-card__front").textContent = c.front;
-    wrap.querySelector(".flash-card__back").textContent = c.back;
-    wrap.addEventListener("click", (e) => {
-      if ((/** @type {HTMLElement} */ (e.target)).closest(".flash-card__del")) return;
-      wrap.classList.toggle("flash-card--flipped");
-    });
-    wrap.querySelector(".flash-card__del").addEventListener("click", (e) => {
-      e.stopPropagation();
+  cardIndex = Math.min(cardIndex, Math.max(0, cards.length - 1));
+  study.hidden = !cards.length;
+  const deck = document.getElementById("card-deck");
+  if (deck) deck.dataset.depth = String(Math.min(3, Math.max(0, cards.length - 1)));
+  showStudyCard(cards);
+
+  grid.replaceChildren();
+  cards.forEach((c, i) => {
+    const thumb = document.createElement("div");
+    thumb.className = "card-thumb";
+    const pick = document.createElement("button");
+    pick.type = "button";
+    pick.className = "card-thumb__pick";
+    pick.dataset.num = String(i + 1);
+    pick.setAttribute("aria-pressed", String(i === cardIndex));
+    const text = document.createElement("span");
+    text.textContent = c.front;
+    pick.append(text);
+    pick.addEventListener("click", () => goToCard(i, i > cardIndex ? 1 : -1));
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "card-thumb__del";
+    del.textContent = "지우기";
+    del.setAttribute("aria-label", `"${c.front}" 카드 지우기`);
+    del.addEventListener("click", () => {
       saveCards(loadCards().filter((x) => x.id !== c.id));
+      if (i < cardIndex) cardIndex -= 1;
+      cardFlipped = false;
       renderCards();
     });
-    grid.appendChild(wrap);
-  }
+    thumb.append(pick, del);
+    grid.append(thumb);
+  });
   if (!cards.length) {
-    grid.innerHTML = `<p class="learning-empty learning-empty--block">아직 카드가 없어요. 질문과 답을 적어서 하나 만들어 보세요.</p>`;
+    grid.innerHTML = `<div class="learning-empty learning-empty--block"><p>아직 카드가 없어요. 위에서 질문과 답을 적어 하나 만들거나, 예시로 먼저 넘겨보세요.</p><button type="button" class="btn btn--line btn--sm" id="btn-sample-cards">예시 카드 4장 넣기</button></div>`;
+    document.getElementById("btn-sample-cards")?.addEventListener("click", () => {
+      saveCards(SAMPLE_CARDS.map(([front, back]) => ({ id: uid(), front, back })));
+      cardIndex = 0;
+      cardFlipped = false;
+      renderCards();
+    });
   }
+}
+
+/**
+ * 카드 넘기기. 다음: 맨 위 장이 오른쪽 아래부터 들려 왼쪽 위로 넘어가고 밑의 장이 드러난다.
+ * 이전: 넘어갔던 장이 왼쪽 위에서 넘어와 다시 덮는다. 넘기면 질문 면으로 돌아간다.
+ */
+async function goToCard(target, dir) {
+  const cards = loadCards();
+  const main = document.getElementById("card-main");
+  if (!cards.length || !main || cardBusy) return;
+  target = (target + cards.length) % cards.length;
+  if (target === cardIndex) return;
+  const swap = () => {
+    cardIndex = target;
+    cardFlipped = false;
+    main.classList.add("is-instant"); // 뒤집힌 상태를 애니메이션 없이 되돌린다
+    renderCards();
+    void main.offsetWidth;
+    main.classList.remove("is-instant");
+  };
+  if (reducedMotion() || !main.animate) { swap(); return; }
+  cardBusy = true;
+  try {
+    if (dir > 0) {
+      const leaving = cards[cardIndex];
+      const wasFlipped = cardFlipped;
+      swap(); // 밑에 다음 장을 먼저 깔아 두고
+      await peelCard(leaving, wasFlipped, "out");
+    } else {
+      await peelCard(cards[target], false, "in");
+      swap(); // 덮이고 난 뒤 내용을 바꾼다
+    }
+  } finally {
+    // 중간에 실패해도 넘기기가 잠긴 채로 남지 않게
+    document.querySelectorAll("#card-deck .peel").forEach((el) => el.remove());
+    if (cardIndex !== target) swap();
+    cardBusy = false;
+  }
+}
+
+function flipCard() {
+  if (cardBusy) return;
+  cardFlipped = !cardFlipped;
+  showStudyCard(loadCards());
+}
+
+function initCardStudy() {
+  const main = document.getElementById("card-main");
+  if (!main) return;
+  let startX = null;
+  let swiped = false;
+  main.addEventListener("pointerdown", (e) => { startX = e.clientX; swiped = false; });
+  main.addEventListener("pointerup", (e) => {
+    if (startX === null) return;
+    const dx = e.clientX - startX;
+    startX = null;
+    if (Math.abs(dx) > 50) {
+      swiped = true;
+      goToCard(cardIndex + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1);
+    }
+  });
+  main.addEventListener("click", () => {
+    if (swiped) { swiped = false; return; }
+    flipCard();
+  });
+  document.getElementById("card-prev")?.addEventListener("click", () => goToCard(cardIndex - 1, -1));
+  document.getElementById("card-next")?.addEventListener("click", () => goToCard(cardIndex + 1, 1));
+  document.addEventListener("keydown", (e) => {
+    if (!document.getElementById("view-cards")?.classList.contains("view--active")) return;
+    const t = /** @type {HTMLElement} */ (e.target);
+    if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
+    if (e.key === "ArrowRight") { e.preventDefault(); goToCard(cardIndex + 1, 1); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); goToCard(cardIndex - 1, -1); }
+    else if (e.key === " " && t?.tagName !== "BUTTON") { e.preventDefault(); flipCard(); }
+  });
 }
 
 function todayWorkMinutes() {
@@ -1528,6 +1698,12 @@ export function initHub(options) {
     clearPhoto();
     applyBackgroundTint();
   });
+  document.getElementById("btn-bg-photo-default")?.addEventListener("click", () => {
+    resetPhoto();
+    localStorage.setItem(BG_TINT_ALPHA_KEY, "0");
+    if (tintAlpha instanceof HTMLInputElement) tintAlpha.value = "0";
+    applyBackgroundTint();
+  });
 
   document.getElementById("form-review-add")?.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -1573,6 +1749,8 @@ export function initHub(options) {
     const cards = loadCards();
     cards.push({ id: uid(), front, back });
     saveCards(cards);
+    cardIndex = cards.length - 1; // 방금 만든 카드를 가운데로
+    cardFlipped = false;
     if (f instanceof HTMLInputElement) f.value = "";
     if (b instanceof HTMLInputElement) b.value = "";
     renderCards();
@@ -1584,6 +1762,7 @@ export function initHub(options) {
     renderHabitView();
   });
 
+  initCardStudy();
   initDataResetControls();
   initHubSettingsDock();
 }

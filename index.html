@@ -82,9 +82,10 @@
                   사진을 배경으로
                   <input type="file" id="input-bg-photo" accept="image/*" hidden />
                 </label>
+                <button type="button" class="btn btn--line btn--sm" id="btn-bg-photo-default" hidden>저녁 도서관 사진</button>
                 <button type="button" class="btn btn--text btn--sm" id="btn-bg-photo-clear" hidden>사진 빼기</button>
               </div>
-              <p class="hint">사진은 이 브라우저에만 저장되고, 사진 색에 맞춰 강조색도 바뀌어요. 위의 색을 누르면 사진은 빠져요.</p>
+              <p class="hint">처음엔 저녁 도서관 사진이 깔려 있어요. 내 사진은 이 브라우저에만 저장되고, 사진 색에 맞춰 강조색도 바뀌어요. 위의 색을 누르면 사진은 빠져요.</p>
               <label class="tint-strength">진하기
                 <input type="range" id="input-bg-tint-alpha" min="0" max="40" value="0" aria-label="배경 색 진하기" />
               </label>
@@ -361,7 +362,7 @@
           <div class="pane">
           <div class="page-head">
             <h1>카드</h1>
-            <p class="desc">카드를 누르면 답이 보여요. 다시 누르면 질문으로 돌아가요.</p>
+            <p class="desc">가운데 카드를 넘겨가며 공부해요. 아래에서 다른 카드를 골라도 돼요.</p>
           </div>
           <form id="form-card-add" class="compose">
             <input type="text" id="input-card-front" class="input" placeholder="질문" maxlength="500" aria-label="질문" />
@@ -370,7 +371,27 @@
           </form>
           </div>
           <div class="pane">
-          <div class="cards" id="grid-cards"></div>
+            <div class="study" id="card-study">
+              <p class="study__count" id="card-count" aria-live="polite"></p>
+              <div class="study__stage">
+                <button type="button" class="study__nav" id="card-prev" aria-label="이전 카드">←</button>
+                <div class="study__deck" id="card-deck">
+                  <span class="study__sheet" aria-hidden="true"></span>
+                  <span class="study__sheet" aria-hidden="true"></span>
+                  <span class="study__sheet" aria-hidden="true"></span>
+                  <button type="button" class="study__card" id="card-main">
+                    <span class="study__inner">
+                      <span class="study__face study__face--front"><small>질문</small><span id="card-front"></span></span>
+                      <span class="study__face study__face--back"><small>답</small><span id="card-back"></span></span>
+                    </span>
+                  </button>
+                </div>
+                <button type="button" class="study__nav" id="card-next" aria-label="다음 카드">→</button>
+              </div>
+              <p class="hint study__hint"><span class="hint--keys">카드를 누르거나 Space로 뒤집기 · ← → 로 넘기기</span><span class="hint--touch">눌러서 뒤집고, 옆으로 밀어서 넘겨요</span></p>
+            </div>
+            <h2 class="section-title">모든 카드 <span class="section-title__aside">눌러서 가운데로 가져오기</span></h2>
+            <div class="card-list" id="grid-cards"></div>
           </div>
           <p class="reset">카드만 모두 지우려면 <button type="button" id="btn-reset-cards-data">카드 모두 지우기</button></p>
         </section>

@@ -7,6 +7,7 @@ const PRECACHE = [
   "./index.html",
   "./css/styles.css",
   "./assets/riverside.svg",
+  "./assets/bg-evening-library.jpg",
   "./assets/library.svg",
   "./assets/studio.svg",
   "./js/app.js",
