@@ -1,29 +1,32 @@
 {
   "id": "./",
-  "name": "My Study Hub — 학습 & 할 일",
-  "short_name": "Study Hub",
-  "description": "할 일, 집중, 복습, 회고를 한곳에서 챙겨요.",
+  "name": "형설 — 반딧불 하나면 충분해",
+  "short_name": "형설",
+  "description": "할 일, 집중, 복습, 카드, 회고를 한곳에서. 오늘 공부한 만큼 한 칸씩 쌓이는 학습 앱.",
   "lang": "ko",
   "dir": "ltr",
-  "start_url": "./",
+  "start_url": "./?source=app",
   "scope": "./",
   "display": "standalone",
   "display_override": ["standalone", "browser"],
-  "background_color": "#f1f0ec",
-  "theme_color": "#f1f0ec",
+  "background_color": "#141615",
+  "theme_color": "#141615",
   "orientation": "any",
+  "categories": ["education", "productivity"],
   "icons": [
-    {
-      "src": "icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    }
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "shortcuts": [
+    { "name": "집중 시작", "short_name": "집중", "url": "./?view=focus", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "할 일", "url": "./?view=organize", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "복습", "url": "./?view=review", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "카드", "url": "./?view=cards", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ],
+  "screenshots": [
+    { "src": "docs/screenshot-home.png", "sizes": "1440x790", "type": "image/png", "form_factor": "wide", "label": "오늘 집중한 시간과 공부한 날이 한 화면에" },
+    { "src": "docs/screenshot-focus.png", "sizes": "1440x790", "type": "image/png", "form_factor": "wide", "label": "플립 시계로 집중" }
   ]
 }

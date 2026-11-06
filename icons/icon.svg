@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- 형설: 밤하늘 위 반딧불 하나와 내리는 눈 몇 송이. 중요한 요소는 가운데 80%(안전 영역) 안에 둔다 -->
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#ffd27a" stop-opacity=".95"/>
+      <stop offset=".35" stop-color="#f08a3c" stop-opacity=".45"/>
+      <stop offset="1" stop-color="#f08a3c" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b2a30"/>
+      <stop offset="1" stop-color="#0d1417"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#sky)"/>
+  <g fill="#e9eef0">
+    <rect x="150" y="150" width="10" height="10" opacity=".7"/>
+    <rect x="352" y="132" width="8" height="8" opacity=".55"/>
+    <rect x="378" y="300" width="10" height="10" opacity=".6"/>
+    <rect x="132" y="330" width="8" height="8" opacity=".45"/>
+    <rect x="300" y="372" width="7" height="7" opacity=".5"/>
+  </g>
+  <circle cx="256" cy="256" r="160" fill="url(#glow)"/>
+  <rect x="226" y="226" width="60" height="60" fill="#ffe3a3"/>
+</svg>
