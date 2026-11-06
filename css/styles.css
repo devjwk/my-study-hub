@@ -53,7 +53,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 h1, h2, h3, p { margin: 0; }
 :focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 
-.hub { max-width: 72rem; margin: 0 auto; padding: 0 24px 5rem; }
+/* 화면 폭을 넓게 쓴다. 양옆 여백은 화면에 비례, 아주 넓은 모니터에서만 120rem에서 멈춘다 */
+.hub { max-width: 120rem; margin: 0 auto; padding: 0 clamp(24px, 4vw, 72px) 5rem; }
 @media (max-width: 600px) { .hub { padding: 0 16px 4rem; } }
 
 /* ── 버튼 ───────────────────────────────── */
@@ -449,7 +450,7 @@ html[data-photo] {
   --surface: color-mix(in srgb, var(--ink) 7%, transparent);
   --surface-2: color-mix(in srgb, var(--ink) 12%, transparent);
   --pane: color-mix(in srgb, var(--base) 58%, transparent);
-  --pane-edge: inset 0 0 0 1px color-mix(in srgb, #fff 16%, transparent), 0 24px 60px -32px rgb(0 0 0 / .45);
+  --pane-edge: 0 24px 60px -32px rgb(0 0 0 / .45); /* 테두리 선 없이 그림자로만 띄운다 */
 }
 html[data-photo] .tint-strength { display: none; }
 /* 모든 화면: 구역(.pane)마다 판 하나씩 띄운다 */
