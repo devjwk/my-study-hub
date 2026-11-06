@@ -29,9 +29,9 @@ Personal project · March 2026 · redesigned November 2026
 | Team | Individual |
 | Stack | HTML, CSS, JavaScript (no framework), Service Worker, localStorage, GitHub Pages |
 
-<img src="docs/screenshot-home.png" alt="Home screen: today's focus minutes against the daily goal, an icon menu for every feature, a year of study days as green squares, today's tasks and the last seven days" width="100%">
+<img src="docs/screenshot-home.png" alt="Home screen in one window: today's focus minutes against the daily goal next to today's tasks, a six-item menu, a year of study days as green squares and the last seven days" width="100%">
 
-<sub>Home screen, shown with sample data. The interface is in Korean.</sub>
+<sub>Home in a default laptop Chrome window (1440×790), shown with sample data. The interface is in Korean.</sub>
 
 ## Why
 
@@ -45,20 +45,24 @@ My study day was spread across a to-do app, a pomodoro timer, a flashcard app an
 
 | Area | Features |
 | :--- | :--- |
-| **Home** | Today's focus minutes against a daily goal, a one-line next step, every feature one tap away, a year of study days as green squares, the last seven days |
+| **Home** | Today's focus minutes against a daily goal, a one-line next step, every feature one tap away, a year of study days as green squares, the last seven days — all in one laptop window without scrolling |
 | **Tasks** | Priority, tags, due date and time, focus-session goal, search, filters, sort, edit, a count of finished tasks with milestones |
-| **Focus** | Focus / short break / long break, task-linked sessions, resume after reload, full-screen illustrated rooms, keyboard shortcuts |
-| **Review** | Topics come back after 7, 3 or 1 days depending on how easy they felt |
+| **Focus** | Flip-clock countdown, focus / short break / long break, task-linked sessions, timer settings, resume after reload, full-screen room (illustration or your photo), collapsible log, keyboard shortcuts |
+| **Review** | Topics come back after 7, 3 or 1 days depending on how easy they felt; a new topic can start today |
 | **Cards** | Question-and-answer flashcards, tap to flip |
 | **Reflect** | How well you understood, plus a short note |
 | **Habit** | Study streak, manual check-in, 26-week graph |
-| **Settings** | Name, daily goal, background colour (seven swatches or any colour, with strength), light and dark themes, full backup and restore |
+| **Settings** | Slides in from the right: name, daily goal, background (seven swatches, any colour or your own photo), light and dark themes, full backup and restore |
 
 Every study action — finishing a focus round, reviewing, writing a reflection, finishing a task or checking in — counts towards that day's square. Days from before the graph existed are filled from focus and reflection logs.
 
-<img src="docs/screenshot-focus.jpg" alt="Full-screen focus room: a rainy library at night with a large countdown, the current task and pause controls" width="100%">
+<img src="docs/screenshot-focus.png" alt="Focus view: a square flip clock showing 25:00 in the centre, start, reset and timer settings buttons below, and a collapsed recent-focus card at the bottom" width="100%">
 
-<sub>Full-screen focus in the rainy library room.</sub>
+<sub>Focus view. Only the digits that change flip over.</sub>
+
+<img src="docs/screenshot-photo.jpg" alt="Home with a photo background: the blurred photo behind dark translucent square panels, with numbers, buttons and the study graph in a blue taken from the photo" width="100%">
+
+<sub>With a photo as the background, sections float on square panels and the accent colour comes from the photo.</sub>
 
 ## Design
 
@@ -73,6 +77,8 @@ Design choices in the November 2026 redesign:
 - **One accent colour.** The colour picked in settings tints the background and becomes the accent for numbers, bars, buttons and the study graph. Its lightness is adjusted until text reads at 4.5:1 or better in both themes. Red is kept for warnings only.
 - **Two typefaces.** IBM Plex Sans KR for text, Instrument Serif for numbers.
 - **Plain wording.** Labels and prompts are written the way a person would say them.
+- **Photo backgrounds.** A chosen photo is scaled to 1600 px, blurred once behind a theme-coloured veil, and every section floats on its own translucent square panel. The accent comes from the photo's dominant vivid hue (12 hue bins, so opposite colours don't average to grey). No `backdrop-filter`, so it stays light on phones.
+- **One window on laptops.** From 1100 px wide, home becomes a grid whose sizes follow the window height, so 1280×720 to 1536×730 windows show everything without scrolling. Phones and tablets keep the stacked layout.
 - **Relative paths.** The same files run at a domain root or under a sub-path such as GitHub Pages.
 
 ## My role
@@ -109,7 +115,7 @@ Individual project: planning, interface design, implementation and deployment co
 | Data lives in one browser's `localStorage` | Sync between devices; today it moves by backup file |
 | Review intervals are fixed (7, 3 or 1 days) | Intervals that grow each time a topic is remembered |
 | No automated tests | Unit tests for task, timer and accent-colour logic |
-| `hub.js` is about 1,500 lines | Split into modules by feature |
+| `hub.js` is about 1,600 lines | Split into modules by feature |
 
 ## Run it
 
