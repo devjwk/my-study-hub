@@ -691,8 +691,38 @@ initHub({
     applyBackgroundTint();
   },
 });
-showView("home");
+// 앱 바로가기(아이콘 길게 누르기)는 ?view=focus 처럼 열린다. 알려진 화면만 받는다
+const START_VIEWS = new Set(["home", "focus", "organize", "review", "cards", "reflect", "habit"]);
+const startView = new URLSearchParams(location.search).get("view");
+showView(START_VIEWS.has(startView) ? startView : "home");
 render();
+
+// ── 앱 설치 ──
+// Chrome·Edge·안드로이드: 브라우저가 설치 가능하다고 알려주면 상단에 「앱 설치」 버튼을 보인다.
+// iOS Safari는 이 이벤트가 없어서 설정 창에 「홈 화면에 추가」 안내를 보인다.
+const installBtn = /** @type {HTMLButtonElement | null} */ (document.getElementById("btn-install"));
+const isStandalone = () =>
+  window.matchMedia("(display-mode: standalone)").matches || /** @type {any} */ (navigator).standalone === true;
+let installPrompt = /** @type {any} */ (null);
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  installPrompt = e;
+  if (installBtn && !isStandalone()) installBtn.hidden = false;
+});
+installBtn?.addEventListener("click", async () => {
+  if (!installPrompt) return;
+  installPrompt.prompt();
+  await installPrompt.userChoice.catch(() => null);
+  installPrompt = null;
+  installBtn.hidden = true;
+});
+window.addEventListener("appinstalled", () => {
+  installPrompt = null;
+  if (installBtn) installBtn.hidden = true;
+});
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const installHelp = document.getElementById("install-help");
+if (installHelp) installHelp.hidden = !(isIOS && !isStandalone());
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {

@@ -3,14 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="할 일, 집중, 복습, 회고를 한곳에서 챙겨요." />
-    <meta name="theme-color" content="#f1f0ec" />
+    <meta name="description" content="형설 — 할 일, 집중, 복습, 카드, 회고를 한곳에서. 오늘 공부한 만큼 한 칸씩 쌓이는 학습 앱." />
+    <meta name="theme-color" content="#141615" />
+    <meta name="application-name" content="형설" />
+    <meta name="apple-mobile-web-app-title" content="형설" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <title>My Study Hub</title>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>형설</title>
     <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
     <link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png" />
-    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -23,8 +27,9 @@
     <div class="hub">
       <header class="hub-bar">
         <button type="button" class="btn btn--text hub-bar__back" id="btn-hub-back" hidden>← 오늘</button>
-        <span class="hub-bar__brand" id="hub-brand">My Study Hub</span>
+        <span class="hub-bar__brand" id="hub-brand">형설</span>
         <span class="hub-bar__date"><span id="home-date"></span> <span id="home-clock"></span></span>
+        <button type="button" class="btn btn--text hub-bar__install" id="btn-install" hidden>앱 설치</button>
         <button type="button" class="btn btn--text" id="btn-theme" aria-label="밝게·어둡게 바꾸기">
           <span data-theme-light>어둡게</span>
           <span class="hidden" data-theme-dark>밝게</span>
@@ -89,6 +94,11 @@
               <label class="tint-strength">진하기
                 <input type="range" id="input-bg-tint-alpha" min="0" max="40" value="0" aria-label="배경 색 진하기" />
               </label>
+            </section>
+
+            <section class="hub-settings__section" id="install-help" hidden>
+              <h3>앱으로 설치하기</h3>
+              <p class="hint">아이폰·아이패드에서는 Safari의 <b>공유</b> 버튼 → <b>홈 화면에 추가</b>를 누르면 앱처럼 설치된다. 설치 후에는 주소창 없이 열리고 오프라인에서도 동작한다.</p>
             </section>
 
             <section class="hub-settings__section">

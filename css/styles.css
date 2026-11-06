@@ -1,4 +1,4 @@
-/* My Study Hub — editorial, square, almost no lines.
+/* 형설 (My Study Hub) — editorial, square, almost no lines.
    색은 중립 + 녹색 하나(진행·행동) + 붉은색 하나(경고). 모서리는 모두 직각. */
 
 :root {
@@ -112,7 +112,10 @@ select.input { cursor: pointer; }
 
 /* ── 상단 ───────────────────────────────── */
 .hub-bar { display: flex; align-items: center; gap: .6rem; padding: 1.1rem 0; }
-.hub-bar__brand { font-weight: 600; margin-right: .8rem; }
+.hub-bar__brand { font-weight: 600; margin-right: .8rem; letter-spacing: .02em; }
+.hub-bar__install { color: var(--green); font-weight: 600; }
+/* 설치된 앱(standalone)에서는 노치·상태바 영역을 피한다 */
+@media (display-mode: standalone) { .hub-bar { padding-top: max(1.1rem, env(safe-area-inset-top)); } }
 .hub-bar__date { flex: 1; color: var(--sub); font-size: 14px; font-variant-numeric: tabular-nums; }
 .hub-bar__back { margin-left: -.3rem; font-weight: 600; color: var(--ink); }
 body:not(:has(#view-home.view--active)) .hub-bar__date { visibility: hidden; }
