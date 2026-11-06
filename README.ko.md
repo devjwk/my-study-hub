@@ -92,6 +92,7 @@
 
 - MDN Web Docs: Service Worker, Web App Manifest, Web Storage
 - Netlify 문서
+- 기본 배경 사진: [Herry Sutanto](https://unsplash.com/@sutanto), [Unsplash](https://unsplash.com/photos/hBILLCX7vxQ) (Unsplash 라이선스)
 
 ## 결과
 

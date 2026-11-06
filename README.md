@@ -92,6 +92,7 @@ Individual project: planning, interface design, implementation and deployment co
 
 - MDN Web Docs: Service Worker, Web App Manifest, Web Storage
 - Netlify documentation
+- Default background photo: [Herry Sutanto](https://unsplash.com/@sutanto) on [Unsplash](https://unsplash.com/photos/hBILLCX7vxQ) (Unsplash License)
 
 ## Results
 

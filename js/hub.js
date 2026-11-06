@@ -12,6 +12,8 @@ const DAILY_GOAL_KEY = "hub-daily-goal";
 const ACTIVITY_KEY = "learning-activity-v1";
 const BG_PHOTO_KEY = "hub-bg-photo";
 const BG_PHOTO_COLOR_KEY = "hub-bg-photo-color";
+/** 처음 쓰는 사람에게 깔리는 기본 배경 (Herry Sutanto, Unsplash 라이선스). color는 preparePhoto와 같은 방식으로 미리 뽑은 값 */
+const DEFAULT_PHOTO = { path: "assets/bg-evening-library.jpg", color: "#973a0c" };
 
 /** Netlify 등 배포 후 전체 백업·복원(app.js)에서 사용 */
 export const HUB_STORAGE_KEYS = [
@@ -93,8 +95,12 @@ export function applyBackgroundTint() {
   const b = parseInt(h.slice(4, 6), 16);
   if ([r, g, b].some((x) => Number.isNaN(x))) return;
   const root = document.documentElement;
-  const photo = localStorage.getItem(BG_PHOTO_KEY);
+  // 사진: 직접 고른 사진 > (아무것도 고른 적 없으면) 기본 저녁 도서관 사진 > 없음("none" 또는 색을 고른 경우)
+  const stored = localStorage.getItem(BG_PHOTO_KEY);
+  const usingDefault = stored === null && strengthPct === 0;
+  const photo = stored && stored !== "none" ? stored : usingDefault ? new URL(DEFAULT_PHOTO.path, document.baseURI).href : null;
   root.toggleAttribute("data-photo", Boolean(photo));
+  document.getElementById("btn-bg-photo-default")?.toggleAttribute("hidden", usingDefault);
   if (photo) root.style.setProperty("--photo", `url("${photo}")`);
   else root.style.removeProperty("--photo");
   let mix = Math.min(42, Math.max(0, strengthPct * 0.95));
@@ -112,8 +118,9 @@ export function applyBackgroundTint() {
   root.style.setProperty("--bg-tint-mix-corner", `${corner.toFixed(1)}%`);
 
   // 대표색: 사진이 있으면 사진 색, 기본(진하기 0)이면 테마 기본 녹색, 아니면 고른 색에서 계산
-  const photoColor = photo && /^#[0-9a-f]{6}$/i.test(localStorage.getItem(BG_PHOTO_COLOR_KEY) || "")
-    ? localStorage.getItem(BG_PHOTO_COLOR_KEY) : null;
+  const savedColor = localStorage.getItem(BG_PHOTO_COLOR_KEY) || "";
+  const photoColor = usingDefault ? DEFAULT_PHOTO.color
+    : photo && /^#[0-9a-f]{6}$/i.test(savedColor) ? savedColor : null;
   if (photoColor) {
     const src = [1, 3, 5].map((i) => parseInt(photoColor.slice(i, i + 2), 16));
     // 사진 위 막(테마 바탕 55%)을 지난 실제 배경을 기준으로 대비를 맞춘다
@@ -168,7 +175,14 @@ async function preparePhoto(file) {
   return { dataUrl, color };
 }
 
+/** 사진 끄기: 기본 사진도 다시 깔리지 않게 "none"으로 남긴다 */
 function clearPhoto() {
+  localStorage.setItem(BG_PHOTO_KEY, "none");
+  localStorage.removeItem(BG_PHOTO_COLOR_KEY);
+}
+
+/** 처음 상태로: 기본 저녁 도서관 사진이 다시 깔린다 */
+function resetPhoto() {
   localStorage.removeItem(BG_PHOTO_KEY);
   localStorage.removeItem(BG_PHOTO_COLOR_KEY);
 }
@@ -893,7 +907,7 @@ function resetHubAppearance() {
   localStorage.removeItem(USER_NAME_KEY);
   localStorage.setItem(BG_TINT_HEX_KEY, "#0f7d56");
   localStorage.setItem(BG_TINT_ALPHA_KEY, "0");
-  clearPhoto();
+  resetPhoto();
   const nameInput = document.getElementById("input-user-name");
   if (nameInput instanceof HTMLInputElement) nameInput.value = "";
   const tintColor = document.getElementById("input-bg-tint-color");
@@ -927,7 +941,7 @@ function resetEntireWorkspace() {
   localStorage.removeItem(USER_NAME_KEY);
   localStorage.setItem(BG_TINT_HEX_KEY, "#0f7d56");
   localStorage.setItem(BG_TINT_ALPHA_KEY, "0");
-  clearPhoto();
+  resetPhoto();
   const nameInput = document.getElementById("input-user-name");
   if (nameInput instanceof HTMLInputElement) nameInput.value = "";
   const tintColor = document.getElementById("input-bg-tint-color");
@@ -1526,6 +1540,12 @@ export function initHub(options) {
   });
   document.getElementById("btn-bg-photo-clear")?.addEventListener("click", () => {
     clearPhoto();
+    applyBackgroundTint();
+  });
+  document.getElementById("btn-bg-photo-default")?.addEventListener("click", () => {
+    resetPhoto();
+    localStorage.setItem(BG_TINT_ALPHA_KEY, "0");
+    if (tintAlpha instanceof HTMLInputElement) tintAlpha.value = "0";
     applyBackgroundTint();
   });
 

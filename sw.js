@@ -1,5 +1,5 @@
 /* Study Hub — PWA 캐시. 배포 후 큰 업데이트 시 버전만 올리면 이전 캐시가 정리됩니다. */
-const CACHE_VERSION = "study-hub-v10";
+const CACHE_VERSION = "study-hub-v13";
 const CACHE = `study-hub-static-${CACHE_VERSION}`;
 
 const PRECACHE = [
@@ -7,6 +7,7 @@ const PRECACHE = [
   "./index.html",
   "./css/styles.css",
   "./assets/riverside.svg",
+  "./assets/bg-evening-library.jpg",
   "./assets/library.svg",
   "./assets/studio.svg",
   "./js/app.js",
