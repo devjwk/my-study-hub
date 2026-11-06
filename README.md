@@ -49,7 +49,7 @@ My study day was spread across a to-do app, a pomodoro timer, a flashcard app an
 | **Tasks** | Priority, tags, due date and time, focus-session goal, search, filters, sort, edit, a count of finished tasks with milestones |
 | **Focus** | Flip-clock countdown, focus / short break / long break, task-linked sessions, timer settings, resume after reload, full-screen room (illustration or your photo), collapsible log, keyboard shortcuts |
 | **Review** | Topics come back after 7, 3 or 1 days depending on how easy they felt; a new topic can start today |
-| **Cards** | Question-and-answer flashcards, tap to flip |
+| **Cards** | Study a deck one card at a time: tap to flip it in 3D, and the next card peels from the bottom-right corner; pick any card from the list below |
 | **Reflect** | How well you understood, plus a short note |
 | **Habit** | Study streak, manual check-in, 26-week graph |
 | **Settings** | Slides in from the right: name, daily goal, background (seven swatches, any colour or your own photo), light and dark themes, full backup and restore |
@@ -62,7 +62,7 @@ Every study action — finishing a focus round, reviewing, writing a reflection,
 
 <img src="docs/screenshot-photo.jpg" alt="Home with a photo background: the blurred photo behind dark translucent square panels, with numbers, buttons and the study graph in a blue taken from the photo" width="100%">
 
-<sub>With a photo as the background, sections float on square panels and the accent colour comes from the photo.</sub>
+<sub>With a photo as the background, the accent colour comes from the photo.</sub>
 
 ## Design
 
@@ -77,7 +77,7 @@ Design choices in the November 2026 redesign:
 - **One accent colour.** The colour picked in settings tints the background and becomes the accent for numbers, bars, buttons and the study graph. Its lightness is adjusted until text reads at 4.5:1 or better in both themes. Red is kept for warnings only.
 - **Two typefaces.** IBM Plex Sans KR for text, Instrument Serif for numbers.
 - **Plain wording.** Labels and prompts are written the way a person would say them.
-- **Photo backgrounds.** A chosen photo is scaled to 1600 px, blurred once behind a theme-coloured veil, and every section floats on its own translucent square panel. The accent comes from the photo's dominant vivid hue (12 hue bins, so opposite colours don't average to grey). No `backdrop-filter`, so it stays light on phones.
+- **Photo backgrounds.** A chosen photo is scaled to 1600 px, blurred once behind a theme-coloured veil, and content sits directly on it without panel boxes. An evening library photo is the default. The accent comes from the photo's dominant vivid hue (12 hue bins, so opposite colours don't average to grey). No `backdrop-filter`, so it stays light on phones.
 - **One window on laptops.** From 1100 px wide, home becomes a grid whose sizes follow the window height, so 1280×720 to 1536×730 windows show everything without scrolling. Phones and tablets keep the stacked layout.
 - **Relative paths.** The same files run at a domain root or under a sub-path such as GitHub Pages.
 
@@ -115,7 +115,7 @@ Individual project: planning, interface design, implementation and deployment co
 | Data lives in one browser's `localStorage` | Sync between devices; today it moves by backup file |
 | Review intervals are fixed (7, 3 or 1 days) | Intervals that grow each time a topic is remembered |
 | No automated tests | Unit tests for task, timer and accent-colour logic |
-| `hub.js` is about 1,600 lines | Split into modules by feature |
+| `hub.js` is about 1,800 lines | Split into modules by feature |
 
 ## Run it
 
