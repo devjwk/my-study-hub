@@ -445,7 +445,9 @@ html[data-photo] body { background: transparent; }
 html[data-photo] body::before,
 html[data-photo] body::after { content: ""; position: fixed; inset: 0; pointer-events: none; }
 html[data-photo] body::before { z-index: -2; background: var(--photo) center / cover; filter: blur(28px) saturate(1.15); transform: scale(1.12); }
-html[data-photo] body::after { z-index: -1; background: color-mix(in srgb, var(--base) 55%, transparent); }
+/* 판이 없으니 막을 조금 진하게 해서 사진 위 글자가 읽히게 */
+html[data-photo] body::after { z-index: -1; background: color-mix(in srgb, var(--base) 66%, transparent); }
+html[data-photo][data-theme="dark"] .hub { text-shadow: 0 1px 12px rgb(0 0 0 / .5); } /* 어두운 테마에서만: 밝은 사진 조각 위 글자 보강 */
 html[data-photo] {
   --surface: color-mix(in srgb, var(--ink) 7%, transparent);
   --surface-2: color-mix(in srgb, var(--ink) 12%, transparent);
@@ -454,7 +456,8 @@ html[data-photo] {
 }
 html[data-photo] .tint-strength { display: none; }
 /* 모든 화면: 구역(.pane)마다 판 하나씩 띄운다 */
-html[data-photo] .pane { background: var(--pane); box-shadow: var(--pane-edge); padding: 28px; }
+/* 판은 배경·그림자 없이 구역만 나눈다. 요소가 사진 위에 바로 놓인다 */
+html[data-photo] .pane { background: none; box-shadow: none; padding: 20px 0; }
 html[data-photo] .view--active > .pane,
 html[data-photo] .view--active > .split { margin-top: 12px; }
 html[data-photo] .view--active > .pane:first-child { margin-top: 1rem; }
@@ -464,10 +467,10 @@ html[data-photo] .pane > .section-title:first-child,
 html[data-photo] .pane > :first-child > .section-title:first-child { margin-top: 0; }
 html[data-photo] .pane > .compose:last-child { margin-bottom: 0; }
 html[data-photo] .pane > .toolbar:first-child { margin-top: 0; }
-html[data-photo] .hero.pane { padding: 32px 28px; }
-html[data-photo] .log-card.pane { padding: 0; }
+html[data-photo] .hero.pane { padding: 24px 0; }
+html[data-photo] .log-card.pane { padding: 0; background: var(--surface); } /* 눌러 펼치는 카드라 옅은 면은 남긴다 */
 html[data-photo] .immersed .pane { background: none; box-shadow: none; padding: 0; }
-@media (max-width: 600px) { html[data-photo] .pane { padding: 20px 16px; } }
+@media (max-width: 600px) { html[data-photo] .pane { padding: 16px 0; } }
 html[data-photo] #view-focus.immersed { background: linear-gradient(90deg, #0f1b20e6, #0f1b20b3 45%, #0f1b2040), var(--photo) center / cover; }
 html[data-photo] .room-tools label { display: none; }
 @media (max-width: 600px) { .app__sub { white-space: normal; } }
@@ -500,5 +503,5 @@ html[data-photo] .room-tools label { display: none; }
   #view-home .contrib:not(.contrib--plain) { --gap: 2px; --cell: max(8px, calc((100cqw - 1.4rem - 52 * var(--gap)) / 53)); }
   #view-home .contrib__months { font-size: 11px; }
   html[data-photo] #view-home.view--active { gap: 12px; }
-  html[data-photo] #view-home .pane { margin-top: 0; padding: 16px 22px; }
+  html[data-photo] #view-home .pane { margin-top: 0; padding: 8px 0; }
 }
